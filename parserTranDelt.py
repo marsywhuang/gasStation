@@ -13,8 +13,8 @@ schema = StructType([
   StructField("Tax_Type", StringType(), True),
   StructField("Product_ID", StringType(), True),
   StructField("Class", StringType(), True),
-  StructField("Price", StringType(), True),
-  StructField("Amt", StringType(), True),
+  StructField("Price", FloatType(), True),
+  StructField("Amt", FloatType(), True),
   StructField("Qty", FloatType(), True),
   StructField("Unit", StringType(), True),
   StructField("Ref_No", StringType(), True)
