@@ -55,6 +55,12 @@ for idxY in listYear:
       # 寫入檔案、多檔模式、CSV 格式
       fileName = tmpDatetimeYear + tmpDatetimeMonth + tmpDatetimeDay + "_TranDelt.csv"
       tmpDfTranDelt.write.csv(fileName)
+
+datetimeFrom = "2018-01-03 00:00:00"
+datetimeTo = "2018-01-03 23:59:59"
+tmpDfTranDelt = dfTranDetl.where((dfTranDetl["Tran_Time"] >= datetimeFrom) & (dfTranDetl["Tran_Time"] <= datetimeTo)).persist()
+# 寫入檔案、多檔模式、CSV 格式
+tmpDfTranDelt.write.csv('20180103_TranDelt.csv')
       
 # 寫入檔案、單一檔案（註：可能導致存檔失效；無法充分使用分配的計算資源）、CSV 格式
 tmpDfTranDelt.coalesce(1).write.csv('20180201_TranDelt.csv')
