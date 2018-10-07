@@ -22,3 +22,8 @@ schema = StructType([
 
 # 讀入原始資料
 dfTranDetl = sqlContext.read.csv("tran_detl.csv", header=True, schema=schema)
+
+tmpDfTranDelt = dfTranDetl.where((dfTranDetl["Tran_Time"] >= "2018-02-01 00:00:00") & (dfTranDetl["Tran_Time"] <= "2018-02-01 23:59:59")).persist()
+splitCol = pyspark.sql.functions.split(df['my_str_col'], '-')
+tmpDfTranDelt = tmpDfTranDelt.withColumn('Date', splitCol.getItem(0))
+tmpDfTranDelt = tmpDfTranDelt.withColumn('Time', splitCol.getItem(1))
