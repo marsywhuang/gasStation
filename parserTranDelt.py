@@ -55,7 +55,7 @@ for idxY in listYear:
       # 寫入檔案、多檔模式、CSV 格式
       fileName = tmpDatetimeYear + tmpDatetimeMonth + tmpDatetimeDay + "_TranDelt.csv"
       tmpDfTranDelt.write.csv(fileName)
-
+      
 # 寫入檔案、單一檔案（註：可能導致存檔失效；無法充分使用分配的計算資源）、CSV 格式
 tmpDfTranDelt.coalesce(1).write.csv('20180201_TranDelt.csv')
 
