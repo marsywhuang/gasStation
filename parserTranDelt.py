@@ -3,6 +3,11 @@ from pyspark.sql import SQLContext
 from pyspark.sql.types import *
 sqlContext = SQLContext(sc)
 
+#
+listYear = [2018]
+listMonth = range(1, 13)
+listDay = range(1, 32)
+
 # 定義資料結構
 schema = StructType([
   StructField("Deptno", StringType(), True),
@@ -20,10 +25,43 @@ schema = StructType([
   StructField("Ref_No", StringType(), True)
 ])
 
-# 讀入原始資料
+# 讀入原始資料，使用預先設定結構
 dfTranDetl = sqlContext.read.csv("tran_detl.csv", header=True, schema=schema)
 
-tmpDfTranDelt = dfTranDetl.where((dfTranDetl["Tran_Time"] >= "2018-02-01 00:00:00") & (dfTranDetl["Tran_Time"] <= "2018-02-01 23:59:59")).persist()
-splitCol = pyspark.sql.functions.split(df['my_str_col'], '-')
+for idxY in listYear:
+  tmpDatetimeYear = str(idxY) + "-"
+  #
+  for idxM in listMonth:
+    if (idxM >= 10):
+      tmpDatetimeMonth = str(idxM) + "-"
+    else:
+      tmpDatetimeMonth = "0" + str(idxM) + "-"        
+    #
+    for idxD in listDay:
+      if (idxD >= 10):
+        tmpDatetimeDay = str(idxD)
+      else:
+        tmpDatetimeDay = "0" + str(idxD)
+      #
+      datetimeFrom = tmpDatetimeYear + tmpDatetimeMonth + tmpDatetimeDay + " 00:00:00"
+      datetimeTo = tmpDatetimeYear + tmpDatetimeMonth + tmpDatetimeDay + " 23:59:59"
+      print (datetimeFrom, datetimeTo)
+      
+      # 取出特定日期
+      # datetimeFrom = "2018-02-01 00:00:00"
+      # datetimeTo = "2018-02-01 23:59:59"
+      tmpDfTranDelt = dfTranDetl.where((dfTranDetl["Tran_Time"] >= datetimeFrom) & (dfTranDetl["Tran_Time"] <= datetimeTo)).persist()
+      
+      # 寫入檔案、多檔模式、CSV 格式
+      fileName = tmpDatetimeYear + tmpDatetimeMonth + tmpDatetimeDay + "_TranDelt.csv"
+      tmpDfTranDelt.write.csv(fileName)
+
+# 寫入檔案、單一檔案（註：可能導致存檔失效；無法充分使用分配的計算資源）、CSV 格式
+tmpDfTranDelt.coalesce(1).write.csv('20180201_TranDelt.csv')
+
+# 自 Tran_Time 取出日期
+splitCol = pyspark.sql.functions.split(tmpDfTranDelt["Tran_Time"], '-')
 tmpDfTranDelt = tmpDfTranDelt.withColumn('Date', splitCol.getItem(0))
 tmpDfTranDelt = tmpDfTranDelt.withColumn('Time', splitCol.getItem(1))
+tmpDfTranDelt = tmpDfTranDelt.withColumn("Date", to_date(tmpDfTranDelt["Date"], "yyyy-MM-dd").cast("date"))
+
