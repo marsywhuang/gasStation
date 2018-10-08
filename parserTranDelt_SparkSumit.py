@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 # 載入函式庫
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
@@ -27,9 +30,12 @@ schema = StructType([
 dfTranDetl = sqlContext.read.csv("/home/mywh/data/tran_detl.csv", header=True, schema=schema)
 
 #
-datetimeFrom = "2018-01-04 00:00:00"
-datetimeTo = "2018-01-04 23:59:59"
+datetimeRange = "2018-01-06"
+datetimeFrom = datetimeRange + " " + "00:00:00"
+datetimeTo = datetimeRange + " " + "23:59:59"
 tmpDfTranDelt = dfTranDetl.where((dfTranDetl["Tran_Time"] >= datetimeFrom) & (dfTranDetl["Tran_Time"] <= datetimeTo))
 
 # 寫入檔案、多檔模式、CSV 格式
-tmpDfTranDelt.write.csv('/home/mywh/data/20180104_TranDelt.csv')
+outputPath = "/home/mywh/data"
+outputFileName = datetimeRange + "_TranDelt.csv"
+tmpDfTranDelt.write.csv(outputPath + "/" + outputFileName)
