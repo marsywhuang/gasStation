@@ -3,11 +3,6 @@
 
 import sys
 
-print (sys.argv[1])
-
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 # 載入函式庫
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
