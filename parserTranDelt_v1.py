@@ -29,9 +29,11 @@ schema = StructType([
 ])
 
 # 讀入原始資料，使用預先設定結構
+inputPath = "/home/mywh/data"
+inputFileName = "tran_detl.csv"
 dfTranDetl = sqlContext.read.csv("/home/mywh/data/tran_detl.csv", header=True, schema=schema)
 
-#
+# 設定資料擷取之日期區間
 datetimeRange = str(sys.argv[1])
 datetimeFrom = datetimeRange + " " + "00:00:00"
 datetimeTo = datetimeRange + " " + "23:59:59"
