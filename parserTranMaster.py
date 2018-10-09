@@ -9,7 +9,30 @@ dfSql = sqlContext.read.csv("tranMaster_201801.csv",  header=False)
 # 變更資料型態
 dfSql = dfSql.withColumn("_c3", col("_c3").cast('timestamp'))
 
-dateFrom = "2018-01-01"
+
+# 設定起始時間
 timeFrom = "00:00:00"
+# 設定終止時間
 timeTo = "23:59:59"
-dfSql.where((dfSql["_c3"] >= (dateFrom + " " + timeFrom)) & (dfSql["_c3"] <= (dateFrom + " " + timeTo))).count()
+# 設定儲存目錄路徑
+outputPath = "/home/mywh/data"
+#
+for idxDay in range(1, 32):
+  #
+  dateFrom = "2018-01"
+  #
+  if (idxDay < 10):
+    dateFrom = dateFrom + "-0" + str(idxDay)
+  else:
+    dateFrom = dateFrom + "-" + str(idxDay)
+  #
+  tmpDateTimeFrom = dateFrom + " " + timeFrom
+  tmpDateTimeTo = dateFrom + " " + timeTo
+  #
+  tmpDfSqlTranMaster = dfSql.where((dfSql["_c3"] >= tmpDateTimeFrom) & (dfSql["_c3"] <= tmpDateTimeTo))
+  
+  # 寫入檔案、多檔模式、CSV 格式
+  outputFileName = "tranMaster-" + dateFrom + ".csv"
+  tmpDfSqlTranMaster.write.csv(outputPath + "/" + outputFileName)
+
+# tmpDfSqlTranMaster.coalesce(1).write.csv(outputPath + "/" + outputFileName)
