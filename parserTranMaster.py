@@ -66,15 +66,21 @@ schema = StructType([
 ])
 
 # 讀入資料
-dfSql = sqlContext.read.csv("tranMaster_201801.csv",  header=False, schema=schema)
+inputPath = "/home/mywh/data"
+inputFileName = "tranMaster_201801.csv"
+dfSql = sqlContext.read.csv(inputPath + "/" + inputFileName,  header=False, schema=schema)
 
-#
+# 取出加油站，去除重覆項
 listDeptNo = tmpDfSqlTranMaster.select(tmpDfSqlTranMaster["Deptno"]).distinct().collect()
+
+# 取出車號，去除重覆項
 listCarNo = tmpDfSqlTranMaster.select(tmpDfSqlTranMaster["Car_No"]).distinct().collect()
 
 #
 dfSql.where(dfSql["Car_No"] == idxItem[0]).groupby(dfSql["Car_No"]).agg(collect_list(struct("Deptno", "Car_No"))).show()
-dfSql.groupby(dfSql["Car_No"]).agg(collect_list(struct("Deptno", "Tran_time")).alias("message")).show()
+
+# 根據車號進行分群（註：以單檔大小接近 10 GB，會出現錯誤
+tmpDfSql = dfSql.groupby(dfSql["Car_No"]).agg(collect_list(struct(dfSql.columns)).alias("message"))
 
 
 for idxItem in listCarNo:
