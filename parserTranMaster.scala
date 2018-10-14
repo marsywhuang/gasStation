@@ -13,7 +13,9 @@ for (idxYear <- 0 to (dtYear.length - 1)) {
       print("\n")
       //
       val dtRange = dtYear(idxYear) + "-" + dtMonth(idxMonth) + "-" + dtDay(idxDay)
-      val dtFileName = "/Users/apple/data/" + dtYear(idxYear) + dtMonth(idxMonth) + dtDay(idxDay) + ".csv"
+      val dtPath = "/Users/apple/data/"
+      val dtFileName = "tranMaster_"+ dtYear(idxYear) + dtMonth(idxMonth) + dtDay(idxDay) + ".csv"
+      val dtFull = dtPath + "/" + dtFileName
       //
       val filterDf = df.filter($"Tran_time".contains(dtRange))
       filterDf.write.csv(dtFileName)
