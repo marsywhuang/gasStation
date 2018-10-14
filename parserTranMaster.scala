@@ -9,6 +9,7 @@ val dtDay : List[String] = List("01", "02", "03", "04", "05", "06", "07", "08", 
 for (idxYear <- 0 to (dtYear.length - 1)) {
   for (idxMonth <- 0 to (dtMonth.length - 1)) {
     for (idxDay <- 0 to (dtDay.length - 1)) {
+      //
       print(dtYear(idxYear) + "-" + dtMonth(idxMonth) + "-" + dtDay(idxDay))
       print("\n")
       //
