@@ -1,11 +1,5 @@
-//
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
-
-//
-val inputPath = "/home/mywh/data"
-val inputFileName = "tran_master.csv"
-val inputFull = inputPath + "/" + inputFileName
-val df = sqlContext.read.format("csv").option("header", "true").load(inputFull)
+val df = sqlContext.read.format("csv").option("header", "true").load("/home/mywh/data/tran_master.csv")
 
 
 val dtYear : List[String] = List("2018")
@@ -20,7 +14,7 @@ for (idxYear <- 0 to (dtYear.length - 1)) {
       print("\n")
       //
       val dtRange = dtYear(idxYear) + "-" + dtMonth(idxMonth) + "-" + dtDay(idxDay)
-      val outputPath = "/home/mywh/data"
+      val outputPath = "/home/mywh/data/"
       val outputFileName = "tranMaster_" + dtYear(idxYear) + dtMonth(idxMonth) + dtDay(idxDay) + ".csv"
       val outputFll = outputPath + "/" + outputFileName
       //
