@@ -9,7 +9,7 @@ val df = sqlContext.read.format("csv").option("header", "true").load(inputFull)
 
 
 val dtYear : List[String] = List("2017")
-val dtMonth : List[String] = List("01", "02", "04", "05", "06", "07", "08", "09", "10", "11", "12")
+val dtMonth : List[String] = List("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
 val dtDay : List[String] = List("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28")
 
 for (idxYear <- 0 to (dtYear.length - 1)) {
