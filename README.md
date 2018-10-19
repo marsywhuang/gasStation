@@ -1,12 +1,15 @@
 # gasStation
 
 // 載入函式庫
+
 import org.apache.spark.sql
 
 // 起動
+
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
 // 定義資料結構
+
 // 註：若可得知載入資料的欄位及其屬性，建議將欄位及其屬性藉由變數方式先行定義
 // 如此一來，spark 不用逐行確定屬性，資料載入快
 // 註：若可事先判斷欄位的屬性，建議事先指定，可節省儲存空間；若未指定情況，spark 預設成 string 格式
