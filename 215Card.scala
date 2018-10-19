@@ -112,9 +112,13 @@ val pDf = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "Mile")
 
 
 // 根據 CUSAUNT、CARNO 及 STDNO 進行分群
-val gDf = df.groupBy("CUSAUNT", "CARNO", "STDNO").agg(collect_list("TDATE").alias("TDATE"), collect_list("QTY").alias("QTY")).sort("CUSAUNT", "CARNO", "STDNO")
+val gDf = (df.groupBy("CUSAUNT", "CARNO", "STDNO").
+           agg(collect_list("TDATE").alias("TDATE"), collect_list("QTY").alias("QTY")).
+           sort("CUSAUNT", "CARNO", "STDNO"))
 
-val gDf = df.groupBy("CUSAUNT", "CARNO", "STDNO").agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).sort("CUSAUNT", "CARNO", "STDNO")
+val gDf = (df.groupBy("CUSAUNT", "CARNO", "STDNO").
+           agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).
+           sort("CUSAUNT", "CARNO", "STDNO"))
 
 // 來源目錄名稱
 val outputPath = "/home/mywh/data"
@@ -134,11 +138,25 @@ val outputFull = outputPath + "/" + outputFileName
 gDf.write.json(outputFull)
 
 
+// 更改 TDate 欄位屬性成為 date 型別
+val tDf = df.withColumn("TDate", to_date($"TDate", "yyyyMMdd"))
 // 更改 Qty 欄位屬性成為 float 型別
 val tDf = df.withColumn("Qty", df("Qty").cast(sql.types.FloatType))
 
+// TDate 欄位屬性成為 date 型別，以及更改 Qty 欄位屬性成為 float 型別
+val tDf = (df.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
+           withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
+
 // 針對 客戶編號、車號 及 加油站代號 進行小計
-val rDf = tDf.rollup("CusAUnt", "CarNo", "StdNo").agg(sum("Qty") as "aQty").select("CusAUnt", "CarNo", "StdNo", "aQty")
+val rDf = (tDf.rollup("CusAUnt", "CarNo", "StdNo").
+           agg(sum("Qty") as "aQty").
+           select("CusAUnt", "CarNo", "StdNo", "aQty"))
+rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
+
+// 針對 客戶編號、車號 及 加油站代號 進行小計
+val rDf = (tDf.rollup("CusAUnt", "CarNo", "StdNo").
+           agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+           select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
 rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
 
 // 根據 車號 及 加油站代號 計算總加油量
@@ -155,6 +173,12 @@ rDf.orderBy("CarNo").collect().foreach(println)
 
 // 根據 加油站代號 計算總加油量
 val rDf = tDf.rollup("StdNo").agg(sum("Qty") as "aQty").select("StdNo", "aQty")
+rDf.orderBy("StdNo").collect().foreach(println)
+
+// 根據 加油站代號 計算 總次數 及 總加油量
+val rDf = (tDf.rollup("StdNo").
+           agg(count("StdNo") as "aTimes", sum("Qty") as "aQty").
+           select("StdNo", "aTimes", "aQty"))
 rDf.orderBy("StdNo").collect().foreach(println)
 
 //
