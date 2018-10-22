@@ -188,6 +188,30 @@ for (idxItm <- tmpGroupDf.collect()) {
   println(idxItm)
 }
 
+//
+val sDf = (tDf.where(($"TDate" >= "2015-01-01") && ($"TDate" <= "2015-12-31")).
+           select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "Mile"))
+
+// 根據 交易日期 計算總次數
+val rDf = tDf.groupBy($"TDate").agg(count("TDate") as "aTDate").select("TDate", "aTDate")
+rDf.orderBy("TDate").collect().foreach(println)
+
+// 根據 交易日期 計算總次數
+val rDf = (tDf.
+           groupBy($"TDate", $"StdNo").
+           agg(count("TDate") as "aTDate", sum("Qty") as "aQty").
+           select("TDate", "StdNo", "aTDate", "aQty"))
+rDf.orderBy("TDate").collect().foreach(println)
+
+//
+val rDf = tDf.groupBy($"TDate").agg(countDistinct("TDate") as "aTDate").select("TDate", "aTDate")
+
+//
+dtFrom = "2016-01-01"
+dtTo = "2016-12-31"
+tDf.where(($"TDate" >= dtFrom) && ($"TDate" <= dtTo)).count()
+
+
 
 
 //
