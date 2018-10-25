@@ -16,14 +16,25 @@ val inputFull = inputPath + "/" + inputFileName
 // 讀入檔案
 val df = sqlContext.read.format("csv").option("header", "true").option("schema", "schema").load(inputFull)
 
-val listColumns = List(Seq ("CUSAUNT", "CARNO", "STDNO"), 
-                       Seq("CUSAUNT", "STDNO", "CARNO"))
+//
+val groupbyCols = List(List[String]("CUSAUNT", "CARNO", "STDNO"),
+                       List[String]("CUSAUNT", "STDNO", "CARNO"))
+//
+val aggCols = List(List[String]("TDATE", "QTY", "MILE"),
+                   List[String]("TDATE", "QTY", "MILE"))
+//
+val sortCols = List(List[String]("CUSAUNT", "CARNO", "STDNO"),
+                   List[String]("CUSAUNT", "STDNO", "CARNO"))
 
-for (idxItem <- listColumns) {
-           println(idxItem)
-           val gDf = (df.groupBy(Seq(idxItem)).sum())
-           gDf.Show()
+//
+for (idxItem <- groupbyCols) {
+  println(idxItem)
+  val gDf = (df.
+             groupBy(idxItem.head, idxItem.tail: _*).
+             agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")))
+  gDf.collect().foreach(println)
 }
+
 // 車隊代碼 CusAunt－車號 CarNo－加油站代碼 StdNo－油銷量 Qty
 val gDf = (df.groupBy("CUSAUNT", "CARNO", "STDNO").
            agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).
