@@ -16,23 +16,35 @@ val inputFull = inputPath + "/" + inputFileName
 // 讀入檔案
 val df = sqlContext.read.format("csv").option("header", "true").option("schema", "schema").load(inputFull)
 
-//
+// groupby 欄位列表
 val groupbyCols = List(List[String]("CUSAUNT", "CARNO", "STDNO"),
                        List[String]("CUSAUNT", "STDNO", "CARNO"))
-//
+// agg 欄位列表
 val aggCols = List(List[String]("TDATE", "QTY", "MILE"),
                    List[String]("TDATE", "QTY", "MILE"))
-//
+// sort 欄位列表
 val sortCols = List(List[String]("CUSAUNT", "CARNO", "STDNO"),
                    List[String]("CUSAUNT", "STDNO", "CARNO"))
 
+// 來源目錄名稱
+val outputPath = "/home/mywh/data"
+
 //
-for (idxItem <- groupbyCols) {
-  println(idxItem)
+for ((idxGroupbyItem, idxSortItem) <- groupbyCols.zip(sortCols)) {
+  //
+  println(s"$idxGroupbyItem, $idxSortItem")
+  // 分群
   val gDf = (df.
-             groupBy(idxItem.head, idxItem.tail: _*).
-             agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")))
-  gDf.collect().foreach(println)
+             groupBy(idxGroupbyItem.head, idxGroupbyItem.tail: _*).
+             agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).
+             sort(idxSortItem.head, idxSortItem.tail: _*)
+            )
+  // 來源檔案名稱
+  val outputFileName = idxGroupbyItem + ".json"
+  // 整體目錄及檔案名稱
+  val outputFull = outputPath + "/" + outputFileName
+  // 以 json 格式存檔
+  gDf.write.json(outputFull)
 }
 
 // 車隊代碼 CusAunt－車號 CarNo－加油站代碼 StdNo－油銷量 Qty
