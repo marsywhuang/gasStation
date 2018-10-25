@@ -22,22 +22,32 @@ val groupbyCols = List(List[String]("CUSAUNT", "CARNO", "STDNO"),
 // agg 欄位列表
 val aggCols = List(List[String]("TDATE", "QTY", "MILE"),
                    List[String]("TDATE", "QTY", "MILE"))
-// sort 欄位列表
-val sortCols = List(List[String]("CUSAUNT", "CARNO", "STDNO"),
-                   List[String]("CUSAUNT", "STDNO", "CARNO"))
+
+// ---------------------
+for (idxGroupbyItem <- groupbyCols, idxSortItem <- sortCols, idxAggItem <- aggCols) {
+  //
+  println(idxGroupbyItem, idxSortItem, idxAggItem)
+}
+
+for ((idxGroupbyItem, idxSortItem, idxAggItem) <- groupbyCols.zip(sortCols).zip(aggCols)) {
+  //
+  println(s"$idxGroupbyItem, $idxSortItem, $idxAggItem")
+}
+// ---------------------
 
 // 來源目錄名稱
 val outputPath = "/home/mywh/data"
 
 //
-for ((idxGroupbyItem, idxSortItem) <- groupbyCols.zip(sortCols)) {
+for ((idxGroupbyItem, idxAggItem) <- groupbyCols.zip(aggCols)) {
   //
-  println(s"$idxGroupbyItem, $idxSortItem")
+  println(s"$idxGroupbyItem, $idxAggItem")
   // 分群
   val gDf = (df.
              groupBy(idxGroupbyItem.head, idxGroupbyItem.tail: _*).
-             agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).
-             sort(idxSortItem.head, idxSortItem.tail: _*)
+             // agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).
+             agg(collect_list(struct(idxAggItem.head, idxAggItem.tail: _*)).alias("Message")).
+             sort(idxGroupbyItem.head, idxGroupbyItem.tail: _*)
             )
   // 來源檔案名稱
   val outputFileName = idxGroupbyItem + ".json"
