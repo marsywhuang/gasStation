@@ -16,6 +16,10 @@ val dtYear : List[String] = List("2017")
 val dtMonth : List[String] = List("01", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12")
 val dtDay : List[String] = List("29", "30", "31")
 
+val dtYear : List[String] = List("2017")
+val dtMonth : List[String] = List("01", "03", "05", "07", "08", "10", "12")
+val dtDay : List[String] = List("31")
+
 for (idxYear <- 0 to (dtYear.length - 1)) {
   for (idxMonth <- 0 to (dtMonth.length - 1)) {
     for (idxDay <- 0 to (dtDay.length - 1)) {
