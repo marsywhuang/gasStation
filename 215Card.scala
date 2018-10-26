@@ -147,13 +147,13 @@ val tDf = df.withColumn("Qty", df("Qty").cast(sql.types.FloatType))
 val tDf = (df.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
            withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
 
-// 針對 客戶編號、車號 及 加油站代號 進行小計
+// 針對 客戶編號、車號 及 加油站代號 計算總加油量
 val rDf = (tDf.rollup("CusAUnt", "CarNo", "StdNo").
            agg(sum("Qty") as "aQty").
            select("CusAUnt", "CarNo", "StdNo", "aQty"))
 rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
 
-// 針對 客戶編號、車號 及 加油站代號 進行小計
+// 針對 客戶編號、車號 及 加油站代號 計算 該車到加油站的次數 及 總加油量
 val rDf = (tDf.rollup("CusAUnt", "CarNo", "StdNo").
            agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
            select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
@@ -189,26 +189,32 @@ for (idxItm <- tmpGroupDf.collect()) {
 }
 
 //
-val sDf = (tDf.where(($"TDate" >= "2015-01-01") && ($"TDate" <= "2015-12-31")).
+val dtFrom = "2016-01-01"
+val dtTo = "2016-12-31"
+//
+val sDf = (tDf.where(($"TDate" >= dtFrom) && ($"TDate" <= dtTo)).
            select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "Mile"))
 
 // 根據 交易日期 計算總次數
-val rDf = tDf.groupBy($"TDate").agg(count("TDate") as "aTDate").select("TDate", "aTDate")
+val rDf = (sDf.
+           groupBy($"TDate").
+           agg(count("TDate") as "aTDate").
+           select("TDate", "aTDate"))
 rDf.orderBy("TDate").collect().foreach(println)
 
-// 根據 交易日期 計算總次數
-val rDf = (tDf.
+// 根據 交易日期 及 油量 計算總次數
+val rDf = (sDf.
            groupBy($"TDate", $"StdNo").
            agg(count("TDate") as "aTDate", sum("Qty") as "aQty").
            select("TDate", "StdNo", "aTDate", "aQty"))
-rDf.orderBy("TDate").collect().foreach(println)
+rDf.orderBy("TDate", "StdNo").collect().foreach(println)
 
 //
 val rDf = tDf.groupBy($"TDate").agg(countDistinct("TDate") as "aTDate").select("TDate", "aTDate")
 
 //
-dtFrom = "2016-01-01"
-dtTo = "2016-12-31"
+val dtFrom = "2016-01-01"
+val dtTo = "2016-12-31"
 tDf.where(($"TDate" >= dtFrom) && ($"TDate" <= dtTo)).count()
 
 
