@@ -2,6 +2,7 @@
 import org.apache.spark.sql.types._ 
 import org.apache.spark.sql.types.FloatType
 import org.apache.spark.sql
+import java.util.Calendar
 
 // 起動
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
@@ -116,7 +117,7 @@ val gDf = (df.groupBy("CUSAUNT", "CARNO", "STDNO").
            agg(collect_list("TDATE").alias("TDATE"), collect_list("QTY").alias("QTY")).
            sort("CUSAUNT", "CARNO", "STDNO"))
 
-val gDf = (df.groupBy("CUSAUNT", "CARNO", "STDNO").
+val gDf = (sDf.groupBy("CUSAUNT", "CARNO", "STDNO").
            agg(collect_list(struct("TDATE", "QTY", "MILE")).alias("Message")).
            sort("CUSAUNT", "CARNO", "STDNO"))
 
@@ -127,15 +128,24 @@ val outputFileName = "215CardGroup.parquet"
 // 整體目錄及檔案名稱
 val outputFull = outputPath + "/" + outputFileName
 
+//
+Calendar.getInstance.getTime()
 // 以 parque 格式存檔
 gDf.write.parquet(outputFull)
+//
+Calendar.getInstance.getTime()
 
 // 來源檔案名稱
 val outputFileName = "215CardGroup.json"
 // 整體目錄及檔案名稱
 val outputFull = outputPath + "/" + outputFileName
+
+//
+Calendar.getInstance.getTime()
 // 以 json 格式存檔
 gDf.write.json(outputFull)
+//
+Calendar.getInstance.getTime()
 
 
 // 更改 TDate 欄位屬性成為 date 型別
@@ -147,24 +157,36 @@ val tDf = df.withColumn("Qty", df("Qty").cast(sql.types.FloatType))
 val tDf = (df.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
            withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
 
-// 針對 客戶編號、車號 及 加油站代號 計算總加油量
-val rDf = (tDf.rollup("CusAUnt", "CarNo", "StdNo").
+// 取出特定日期區間的資
+val dtFrom = "2016-01-01"
+val dtTo = "2016-12-31"
+val sDf = (tDf.where(($"TDate" >= dtFrom) && ($"TDate" <= dtTo)).
+           select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "Mile"))
+
+// 針對 客戶編號、車號 及 加油站代號 進行小計
+val rDf = (sDf.rollup("CusAUnt", "CarNo", "StdNo").
            agg(sum("Qty") as "aQty").
            select("CusAUnt", "CarNo", "StdNo", "aQty"))
 rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
 
-// 針對 客戶編號、車號 及 加油站代號 計算 該車到加油站的次數 及 總加油量
-val rDf = (tDf.rollup("CusAUnt", "CarNo", "StdNo").
+// 針對 客戶編號、車號 及 加油站代號 進行小計
+val rDf = (sDf.rollup("CusAUnt", "CarNo", "StdNo").
            agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
            select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
+//
 rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
 
 // 根據 車號 及 加油站代號 計算總加油量
-val rDf = tDf.rollup("CarNo", "StdNo").agg(sum("Qty") as "aQty").select("CarNo", "StdNo", "aQty")
+val rDf = (sDf.
+           rollup("CarNo", "StdNo").
+           agg(countDistinct("StdNo") as "aStdNo", sum("Qty") as "aQty").
+           select("CarNo", "StdNo", "aStdNo", "aQty"))
+//
 rDf.orderBy("CarNo", "StdNo").collect().foreach(println)
 
 // 根據 客戶編號 計算總加油量
-val rDf = tDf.rollup("CusAUnt").agg(sum("Qty") as "aQty").select("CusAUnt", "aQty")
+val rDf = sDf.rollup("CusAUnt").agg(sum("Qty") as "aQty").select("CusAUnt", "aQty")
+//
 rDf.orderBy("CusAUnt").collect().foreach(println)
 
 // 根據 車號 計算總加油量
@@ -188,36 +210,39 @@ for (idxItm <- tmpGroupDf.collect()) {
   println(idxItm)
 }
 
-//
-val dtFrom = "2016-01-01"
-val dtTo = "2016-12-31"
-//
+// 取出特定日期區間的資
+dtFrom = "2016-01-01"
+dtTo = "2016-12-31"
 val sDf = (tDf.where(($"TDate" >= dtFrom) && ($"TDate" <= dtTo)).
            select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "Mile"))
 
 // 根據 交易日期 計算總次數
-val rDf = (sDf.
-           groupBy($"TDate").
-           agg(count("TDate") as "aTDate").
-           select("TDate", "aTDate"))
+val rDf = tDf.groupBy($"TDate").agg(count("TDate") as "aTDate").select("TDate", "aTDate")
 rDf.orderBy("TDate").collect().foreach(println)
 
-// 根據 交易日期 及 油量 計算總次數
-val rDf = (sDf.
+// 根據 交易日期 計算總次數
+val rDf = (tDf.
            groupBy($"TDate", $"StdNo").
            agg(count("TDate") as "aTDate", sum("Qty") as "aQty").
            select("TDate", "StdNo", "aTDate", "aQty"))
+
 rDf.orderBy("TDate", "StdNo").collect().foreach(println)
 
 //
 val rDf = tDf.groupBy($"TDate").agg(countDistinct("TDate") as "aTDate").select("TDate", "aTDate")
 
 //
-val dtFrom = "2016-01-01"
-val dtTo = "2016-12-31"
+dtFrom = "2016-01-01"
+dtTo = "2016-12-31"
 tDf.where(($"TDate" >= dtFrom) && ($"TDate" <= dtTo)).count()
 
-
+//
+for (idxRecord <- gDf.collect()) {
+  println(idxRecord)
+  for (idxCol <- 0 to (idxRecord.length - 1)) {
+    println(idxRecord(idxCol))
+  }
+}
 
 
 //
