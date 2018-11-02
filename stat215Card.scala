@@ -37,7 +37,7 @@ val dtTo = List(List[String]("2017-01-31", "2017-02-28", "2017-03-31", "2017-04-
 val outputPath = "/home/mywh/data/resultData"
 
 // 取出特定日期區間的資料
-for (idx <- 0 to 11) {
+for (idx <- 0 to (dtFrom(0).length - 1)) {
   //
   val idxDtFrom = dtFrom(0)(idx)
   val idxDtTo = dtTo(0)(idx)
@@ -48,16 +48,26 @@ for (idx <- 0 to 11) {
   println(idx, idxDtFrom, idxDtTo, sDf.count())
 
   // 針對 客戶編號、車號 及 加油站代號 進行分群，計算加油總量
-  val rDf = (sDf.rollup("CusAUnt", "CarNo", "StdNo").
+  // val rDf = (sDf.rollup("CusAUnt", "CarNo", "StdNo").
+  //           agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+  //           select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
+
+  // 針對 客戶編號、車號 及 加油站代號 進行分群，計算加油總量
+  val rDf = (sDf.rollup("CusAUnt", "StdNo", "CarNo").
              agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
              select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
-  //
+
   // rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
 
   // 來源檔案名稱
-  val outputFileName = ("CusAUnt" + "CarNo" + "StdNo"
-                        + "-" + "aStdNoTimes" + "_" + "aQty" +
+  // val outputFileName = ("CusAUnt" + "CarNo" + "StdNo"
+  //                      + "-" + "aStdNoTimes" + "_" + "aQty"
+  //                      + "_" + idxDtFrom.replace("-", "") + "-" + idxDtTo.replace("-", ""))
+
+  val outputFileName = ("CusAUnt" + "StdNo" + "CarNo"
+                        + "-" + "aStdNoTimes" + "_" + "aQty"
                         + "_" + idxDtFrom.replace("-", "") + "-" + idxDtTo.replace("-", ""))
+
   // 整體目錄及檔案名稱
   val outputFull = outputPath + "/" + outputFileName
   //
