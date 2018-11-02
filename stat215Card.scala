@@ -74,7 +74,7 @@ for (idx <- 0 to (dtFrom(0).length - 1)) {
   // 針對 加油站代號、客戶編號 及 車號 進行分群，計算加油總量
   val rDf = (sDf.rollup("StdNo", "CusAUnt", "CarNo").
              agg(count("CarNo") as "aCarNoTimes", sum("Qty") as "aQty").
-             select("StdNo", "CusAUnt", "CarNo", "aStdNoTimes", "aQty"))
+             select("StdNo", "CusAUnt", "CarNo", "aCarNoTimes", "aQty"))
 
   // 來源檔案名稱
   
