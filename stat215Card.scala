@@ -23,18 +23,32 @@ val pDf = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt")
 val tDf = (pDf.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
            withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
 
-
-
 // 日期級距
 val dtYear = List(List[String]("2016", "2017", "2018"))
+val dtMonth = List(List[String]("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"))
+val dtStartDay = List(List[String]("01"))
+val dtEndDay = List(List[String]("28", "29", "30", "31"))
+
+// 起始日期
 val dtFrom = List(List[String]("2017-01-01", "2017-02-01", "2017-03-01", "2017-04-01", "2017-05-01", "2017-06-01",
                                "2017-07-01", "2017-08-01", "2017-09-01", "2017-10-01", "2017-11-01", "2017-12-01"))
+// 終止日期
 val dtTo = List(List[String]("2017-01-31", "2017-02-28", "2017-03-31", "2017-04-30", "2017-05-31", "2017-06-30",
                              "2017-07-31", "2017-08-31", "2017-09-30", "2017-10-31", "2017-11-30", "2017-12-31"))
 
 
 // 來源目錄名稱
-val outputPath = "/home/mywh/data/resultData"
+// val outputPath = "/home/mywh/data/resultData/CusAUnt-CarNo-StdNo_aStdNoTimes-aQty_2017"
+// val outputPath = "/home/mywh/data/resultData/CusAUnt-StdNo-CarNo_aStdNoTimes-aQty_2017"
+val outputPath = "/home/mywh/data/resultData/StdNo-CusAUnt-CarNo_aCarNoTimes-aQty_2017"
+
+// groupby 欄位列表
+val groupbyCols = List(List[String]("CusAUnt", "CarNo", "StdNo"),
+                       List[String]("CusAUnt", "StdNo", "CarNo"),
+                       List[String]("StdNo", "CusAUnt", "CarNo"))
+// agg 欄位列表
+val aggCols = List(List[String]("TDATE", "QTY", "MILE"),
+                   List[String]("TDATE", "QTY", "MILE"))
 
 // 取出特定日期區間的資料
 for (idx <- 0 to (dtFrom(0).length - 1)) {
@@ -47,31 +61,57 @@ for (idx <- 0 to (dtFrom(0).length - 1)) {
   //
   println(idx, idxDtFrom, idxDtTo, sDf.count())
 
-  // 針對 客戶編號、車號 及 加油站代號 進行分群，計算加油總量
+  // 針對 客戶編號、車號 及 加油站代號 進行分群，計算 加油次數 及 加油總量
   // val rDf = (sDf.rollup("CusAUnt", "CarNo", "StdNo").
   //           agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
   //           select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
 
-  // 針對 客戶編號、車號 及 加油站代號 進行分群，計算加油總量
-  val rDf = (sDf.rollup("CusAUnt", "StdNo", "CarNo").
-             agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
-             select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
+  // 針對 客戶編號、加油站代號 及 車號 進行分群，計算 加油次數 及 加油總量
+  // val rDf = (sDf.rollup("CusAUnt", "StdNo", "CarNo").
+  //            agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+  //            select("CusAUnt", "StdNo", "CarNo", "aStdNoTimes", "aQty"))
 
-  // rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
+  // 針對 加油站代號、客戶編號 及 車號 進行分群，計算加油總量
+  val rDf = (sDf.rollup("StdNo", "CusAUnt", "CarNo").
+             agg(count("CarNo") as "aCarNoTimes", sum("Qty") as "aQty").
+             select("StdNo", "CusAUnt", "CarNo", "aStdNoTimes", "aQty"))
 
   // 來源檔案名稱
-  // val outputFileName = ("CusAUnt" + "CarNo" + "StdNo"
-  //                      + "-" + "aStdNoTimes" + "_" + "aQty"
+  
+  // val outputFileName = ("CusAUnt" + "-" + "CarNo" + "-" + "StdNo"
+  //                      + "_" + "aStdNoTimes" + "-" + "aQty"
   //                      + "_" + idxDtFrom.replace("-", "") + "-" + idxDtTo.replace("-", ""))
 
-  val outputFileName = ("CusAUnt" + "StdNo" + "CarNo"
-                        + "-" + "aStdNoTimes" + "_" + "aQty"
+  // val outputFileName = ("CusAUnt" + "-" + "StdNo" + "-" + "CarNo"
+  //                       + "_" + "aStdNoTimes" + "-" + "aQty"
+  //                       + "_" + idxDtFrom.replace("-", "") + "-" + idxDtTo.replace("-", ""))
+
+  val outputFileName = ("StdNo" + "-" + "CusAUnt" + "-" + "CarNo"
+                        + "_" + "aStdNoTimes" + "-" + "aQty"
                         + "_" + idxDtFrom.replace("-", "") + "-" + idxDtTo.replace("-", ""))
 
   // 整體目錄及檔案名稱
   val outputFull = outputPath + "/" + outputFileName
+
+
   //
-  (rDf.orderBy("CusAUnt", "CarNo", "StdNo").
+  // (rDf.orderBy("CusAUnt", "CarNo", "StdNo").
+  //      coalesce(1).
+  //      write.
+  //      format("com.databricks.spark.csv").
+  //      option("header", "true").
+  //      save(outputFull))
+
+  //
+  // (rDf.orderBy("CusAUnt", "StdNo", "CarNo").
+  //      coalesce(1).
+  //      write.
+  //      format("com.databricks.spark.csv").
+  //      option("header", "true").
+  //      save(outputFull))
+
+  //
+  (rDf.orderBy("StdNo", "CusAUnt", "CarNo").
        coalesce(1).
        write.
        format("com.databricks.spark.csv").
