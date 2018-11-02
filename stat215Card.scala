@@ -38,11 +38,17 @@ for (idx <- 0 to 11) {
              select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "Mile"))
   //
   println(idx, idxDtFrom, idxDtTo, sDf.count())
-           
+
   // 針對 客戶編號、車號 及 加油站代號 進行分群，計算加油總量
   val rDf = (sDf.rollup("CusAUnt", "CarNo", "StdNo").
-             agg(sum("Qty") as "aQty").
-             select("CusAUnt", "CarNo", "StdNo", "aQty"))
+             agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+             select("CusAUnt", "CarNo", "StdNo", "aStdNoTimes", "aQty"))
   //
   rDf.orderBy("CusAUnt", "CarNo", "StdNo").collect().foreach(println)
+
+  // [客戶編號, null, null, 次數, 加油總量]
+  // [客戶編號, 車號, null,  加油總量]
+  // [客戶編號, 車號, 加油站代號, 次數, 加油總量]
+
+  
 }
