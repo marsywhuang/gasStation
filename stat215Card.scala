@@ -93,7 +93,6 @@ for (idx <- 0 to (dtFrom(0).length - 1)) {
   // 整體目錄及檔案名稱
   val outputFull = outputPath + "/" + outputFileName
 
-
   //
   // (rDf.orderBy("CusAUnt", "CarNo", "StdNo").
   //      coalesce(1).
