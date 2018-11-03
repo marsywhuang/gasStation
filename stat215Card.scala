@@ -123,3 +123,15 @@ for (idx <- 0 to (dtFrom(0).length - 1)) {
   // [客戶編號, 車號, 加油站代號, 次數, 加油總量]:某客戶轄下某車在某個加油站的加油次數及加油總量
 
 }
+
+// 取出 加油站代號、交易日期、量、車號、企業客戶代號
+val pDf = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt")
+// 自 TDate 分離出 年 及 月 到欄位 TDateYear 及 TDateMonth
+val tDf = pDf.select(col("*"), substring(col("TDate"), 0, 4).as("TDateYear"), substring(col("TDate"), 5, 2).as("TDateMonth"))
+// TDate 欄位屬性成為 date 型別，以及更改 Qty 欄位屬性成為 float 型別
+val sDf = (tDf.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
+           withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
+//
+val rDf = (sDf.rollup("TDateYear", "TDateMonth", "CusAUnt", "CarNo", "StdNo").
+           agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+           select("*"))
