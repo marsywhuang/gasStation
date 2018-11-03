@@ -124,6 +124,7 @@ for (idx <- 0 to (dtFrom(0).length - 1)) {
 
 }
 
+
 // 取出 加油站代號、交易日期、量、車號、企業客戶代號
 val pDf = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt")
 // 自 TDate 分離出 年 及 月 到欄位 TDateYear 及 TDateMonth
@@ -131,7 +132,71 @@ val tDf = pDf.select(col("*"), substring(col("TDate"), 0, 4).as("TDateYear"), su
 // TDate 欄位屬性成為 date 型別，以及更改 Qty 欄位屬性成為 float 型別
 val sDf = (tDf.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
            withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
+
+// 目的目錄
+val outputPath = "/home/mywh/data/resultData"
 //
-val rDf = (sDf.rollup("TDateYear", "TDateMonth", "CusAUnt", "CarNo", "StdNo").
-           agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
-           select("*"))
+val dtYear = List(List[String]("2016", "2017", "2018"))
+val groupbyColumn = List(List[String]("CusAUnt", "CarNo", "StdNo"),
+                         List[String]("CusAUnt", "StdNo", "CarNo"),
+                         List[String]("StdNo", "CusAUnt", "CarNo"))
+dtYear(0).zip(groupbyColumn)
+//
+for (idxYear <- 0 to (dtYear(0).length - 1)) {
+  //
+  val tmpIdxYear = dtYear(0)(idxYear)
+//  // 針對 客戶編號、車號 及 加油站代號 進行分群，計算 加油次數 及 加油總量
+//  val rDf = (sDf.rollup("TDateYear", "TDateMonth", "CusAUnt", "CarNo", "StdNo").
+//             agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+//             select("*").filter(s"TDateYear = $tmpIdxYear"))
+//  // 檔案名稱
+//  val outputFileName = ("TDateYear" + "-" + "TDateMonth" + "-" + "CusAUnt" + "-" + "CarNo" + "-" + "StdNo"
+//                        + "_" + "aStdNoTimes" + "-" + "aQty"
+//                        + "_" + tmpIdxYear)
+//  // 整體目錄及檔案名稱
+//  val outputFull = outputPath + "/" + outputFileName
+//  //
+//  (rDf.orderBy("TDateYear", "TDateMonth", "CusAUnt", "CarNo", "StdNo").
+//       coalesce(1).
+//       write.
+//       format("com.databricks.spark.csv").
+//       option("header", "true").
+//       save(outputFull))
+
+//  // 針對 客戶編號、加油站代號 及 車號 進行分群，計算 加油次數 及 加油總量
+//  val rDf = (sDf.rollup("TDateYear", "TDateMonth", "CusAUnt", "StdNo", "CarNo").
+//             agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+//             select("*").filter(s"TDateYear = $tmpIdxYear"))
+//  // 檔案名稱
+//  val outputFileName = ("TDateYear" + "-" + "TDateMonth" + "-" + "CusAUnt" + "-" + "StdNo" + "-" + "CarNo"
+//                        + "_" + "aStdNoTimes" + "-" + "aQty"
+//                        + "_" + tmpIdxYear)
+//  // 整體目錄及檔案名稱
+//  val outputFull = outputPath + "/" + outputFileName
+//  //
+//  (rDf.orderBy("TDateYear", "TDateMonth", "CusAUnt", "StdNo", "CarNo").
+//       coalesce(1).
+//       write.
+//       format("com.databricks.spark.csv").
+//       option("header", "true").
+//       save(outputFull))
+
+  // 針對 客戶編號、加油站代號 及 車號 進行分群，計算 加油次數 及 加油總量
+  val rDf = (sDf.rollup("TDateYear", "TDateMonth", "StdNo", "CusAUnt", "CarNo").
+             agg(count("StdNo") as "aStdNoTimes", sum("Qty") as "aQty").
+             select("*").filter(s"TDateYear = $tmpIdxYear"))
+  // 檔案名稱
+  val outputFileName = ("TDateYear" + "-" + "TDateMonth" + "-" + "StdNo" + "-" + "CusAUnt" + "-" + "CarNo"
+                        + "_" + "aStdNoTimes" + "-" + "aQty"
+                        + "_" + tmpIdxYear)
+  // 整體目錄及檔案名稱
+  val outputFull = outputPath + "/" + outputFileName
+  //
+  (rDf.orderBy("TDateYear", "TDateMonth", "StdNo", "CusAUnt", "CarNo").
+       coalesce(1).
+       write.
+       format("com.databricks.spark.csv").
+       option("header", "true").
+       save(outputFull))
+
+}
