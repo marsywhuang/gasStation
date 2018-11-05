@@ -200,3 +200,64 @@ for (idxYear <- 0 to (dtYear(0).length - 1)) {
        save(outputFull))
 
 }
+
+// 車隊卡當月油銷級距分析表：年度月油品（汽油、柴油）銷售總量
+
+// 取出 加油站代號、交易日期、量、車號、企業客戶代號、產品
+val pDf = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "PNo")
+// 自 TDate 分離出 年 及 月 到欄位 TDateYear 及 TDateMonth
+val tDf = pDf.select(col("*"), substring(col("TDate"), 0, 4).as("TDateYear"), substring(col("TDate"), 5, 2).as("TDateMonth"))
+// TDate 欄位屬性成為 date 型別，以及更改 Qty 欄位屬性成為 float 型別
+val sDf = (tDf.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
+           withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
+
+//
+val dtYear = List(List[String]("2016", "2017", "2018"))
+//
+for (idxYear <- 0 to (dtYear(0).length - 1)) {
+  //
+  val tmpIdxYear = dtYear(0)(idxYear)
+  //
+  val rDf = (sDf.rollup("TDateYear", "TDateMonth", "PNo").
+             agg(sum("Qty") as "aQty").select("*").filter(s"TDateYear = $tmpIdxYear").
+             orderBy("TDateYear", "TDateMonth", "PNo"))
+  //
+  rDf.collect().foreach(println)
+}
+
+// 加油站資訊
+
+// 來源目錄名稱
+val inputPath = "/home/mywh/data/rawData"
+// 來源檔案名稱
+val inputFileName = "215Card.csv"
+// 整體目錄及檔案名稱
+val inputFull = inputPath + "/" + inputFileName
+
+// 讀入檔案
+val df215Card = sqlContext.read.format("csv").option("header", "true").load(inputFull)
+// 取出 加油站代號、交易日期、量、車號、企業客戶代號
+val pDf215Card = df215Card.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt")
+
+// TDate 欄位屬性成為 date 型別，以及更改 Qty 欄位屬性成為 float 型別
+val tDf215Card = (pDf215Card.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
+                  withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
+
+// 來源檔案名稱
+val inputFileName = "infoCpcGasStation.csv"
+// 整體目錄及檔案名稱
+val inputFull = inputPath + "/" + inputFileName
+
+// 讀入檔案
+val dfInfoCpcGasStation = sqlContext.read.format("csv").option("header", "false").load(inputFull)
+// 取出欄位名稱
+val tmpHeader = dfInfoCpcGasStation.first()
+// 刪除欄位名稱
+val tmpDfInfoCpcGasStation = dfInfoCpcGasStation.filter(row => row != tmpHeader)
+val dfInfoCpcGasStation = tmpDfInfoCpcGasStation
+
+//
+val pDf215Card = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "PNo")
+val pDfInfoGasStation = dfInfoCpcGasStation.select("_c0", "_c1", "_c3", "_c4") // _c0 站代號、_c1 類別、_c3 縣市、_c4 鄉鎮區
+val joinedDF = pDf215Card.as('a).join(pDfInfoGasStation.as('b), $"a.StdNo" === $"b._c0").drop("_c0")
+joinedDF.show()
