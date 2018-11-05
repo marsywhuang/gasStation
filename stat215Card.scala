@@ -241,7 +241,7 @@ val pDf215Card = df215Card.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt")
 
 // TDate 欄位屬性成為 date 型別，以及更改 Qty 欄位屬性成為 float 型別
 val tDf215Card = (pDf215Card.withColumn("TDate", to_date($"TDate", "yyyyMMdd")).
-                  withColumn("Qty", df("Qty").cast(sql.types.FloatType)))
+                  withColumn("Qty", pDf215Card("Qty").cast(sql.types.FloatType)))
 
 // 來源檔案名稱
 val inputFileName = "infoCpcGasStation.csv"
@@ -257,7 +257,6 @@ val tmpDfInfoCpcGasStation = dfInfoCpcGasStation.filter(row => row != tmpHeader)
 val dfInfoCpcGasStation = tmpDfInfoCpcGasStation
 
 //
-val pDf215Card = df.select("StdNo", "TDate", "Qty", "CarNo", "CusAUnt", "PNo")
 val pDfInfoGasStation = dfInfoCpcGasStation.select("_c0", "_c1", "_c3", "_c4") // _c0 站代號、_c1 類別、_c3 縣市、_c4 鄉鎮區
-val joinedDF = pDf215Card.as('a).join(pDfInfoGasStation.as('b), $"a.StdNo" === $"b._c0").drop("_c0")
+val joinedDF = tDf215Card.as('a).join(pDfInfoGasStation.as('b), $"a.StdNo" === $"b._c0").drop("_c0")
 joinedDF.show()
