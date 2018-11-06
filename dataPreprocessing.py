@@ -56,11 +56,12 @@ pDf215Card = df215Card.select(statColumn)
 #
 tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
                         .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
-tDf215Card.QTY.cast('float')
+
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
+aggColumn = ['tDf215Card.QTY']
 
-# 根據 年、月、油品 欄位，計算 某年某月特定油品 次數
+# 根據 年、月、油品 欄位，計算 某年某月特定油品的總銷量
 for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
   idxRow
 
