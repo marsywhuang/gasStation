@@ -44,13 +44,15 @@ inputPath = "/home/mywh/data/rawData"
 inputFile = "215Card.csv"
 # 完整路徑和資料
 inputFull = inputPath + "/" + inputFile
-
 # 讀入來源資料
 df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 
+#
+# 年度月油品（汽油/柴油）銷售總量
+#
+
 # 表列要統計的欄位名稱
 statColumn = ['PNO', 'TDATE', 'QTY']
-
 # 取出特定欄位
 pDf215Card = df215Card.select(statColumn)
 #
@@ -59,11 +61,25 @@ tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4
 
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
-aggColumn = ['tDf215Card.QTY']
-
 # 根據 年、月、油品 欄位，計算 某年某月特定油品的總銷量
 for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
   idxRow
+
+#
+# 同期｛全部｜汽油｜柴油｝銷售總量
+#
+
+# 群組欄位
+groupColumn = ['TDATEYEAR', 'TDATEMONTH']
+# 根據｛年｝｛月｝［油品］欄位，計算 計算｛年｝｛月｝［全部］的總銷量
+for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
+  idxRow
+# 根據｛年｝｛月｝欄位，計算｛年｝｛月｝［汽油］的總銷量
+# 根據｛年｝｛月｝欄位，計算｛年｝｛月｝［柴油］的總銷量
+
+#
+# 未使用代碼
+#
 
 # 根據 年、月、油品 欄位，計算 某年某月特定油品 次數
 for idxRow in tDf215Card.groupBy(groupColumn).agg(count('PNO')).orderBy(groupColumn).collect():
