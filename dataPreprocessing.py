@@ -16,7 +16,5 @@ df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 for idxCol in range(len(df.columns)):
   df.columns[idxCol]
   # df.select(df[idxCol]).distinct().count()
-  # df.groupBy(df.columns[idxCol]).count().collect().foreach(println)
-  # df.where(df[idxCol]=="加盟站").count()
   for idxRow in df.groupBy(df.columns[idxCol]).agg(count(df.columns[idxCol])).collect():
     idxRow
