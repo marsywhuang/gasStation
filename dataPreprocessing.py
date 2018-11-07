@@ -75,15 +75,17 @@ pDf215Card = df215Card.select(statColumn)
 tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
                         .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
 
+# 取出特定產品
+productGroupDf215Card = (tDf215Card
+              .where(tDf215Card.PNO.contains(productColumn[0]) |
+                     tDf215Card.PNO.contains(productColumn[1]) |
+                     tDf215Card.PNO.contains(productColumn[2]) |
+                     tDf215Card.PNO.contains(productColumn[3]) |
+                     tDf215Card.PNO.contains(productColumn[4])))
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
 # 第一次計算（汽油及柴油的各自總銷量）：根據｛產品｝欄位，計算｛年｝｛月｝的［汽油、柴油］的各自總銷量
-firstGroupDf215Card = (tDf215Card
-                       .where(tDf215Card.PNO.contains(productColumn[0]) |
-                              tDf215Card.PNO.contains(productColumn[1]) |
-                              tDf215Card.PNO.contains(productColumn[2]) |
-                              tDf215Card.PNO.contains(productColumn[3]) |
-                              tDf215Card.PNO.contains(productColumn[4]))
+firstGroupDf215Card = (productGroupDf215Card
                        .groupBy(groupColumn)
                        .agg(sum(tDf215Card.QTY.cast('float')).alias('firstQty'))
                        .orderBy(groupColumn))
@@ -100,16 +102,7 @@ thirdGroupDf215Card = (secondGroupDf215Card
                        .orderBy(groupColumn[0]))
 
 # 印出結果
-for idxRow in (tDf215Card
-               .where(tDf215Card.PNO.contains(productColumn[0]) |
-                      tDf215Card.PNO.contains(productColumn[1]) |
-                      tDf215Card.PNO.contains(productColumn[2]) |
-                      tDf215Card.PNO.contains(productColumn[3]) |
-                      tDf215Card.PNO.contains(productColumn[4]))
-               .groupBy(firstGroupColumn)
-               .agg(sum(tDf215Card.QTY.cast('float')).alias('aQty'))
-               .orderBy(firstGroupColumn)
-               .collect()):
+for idxRow in (firstGroupDf215Card.collect()):
   idxRow
 
 # 根據｛年｝｛月｝欄位，計算［汽油］的總銷量
