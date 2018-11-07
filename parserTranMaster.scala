@@ -2,7 +2,7 @@
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
 //
-val inputPath = "/home/cpc/data/rawdata"
+val inputPath = "/home/cpc/data/rawData"
 val inputFileName = "tran_master.csv"
 val inputFull = inputPath + "/" + inputFileName
 val df = sqlContext.read.format("csv").option("header", "true").load(inputFull)
