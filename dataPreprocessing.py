@@ -94,7 +94,6 @@ secondGroupDf215Card = (firstGroupDf215Card
                         .groupBy(groupColumn[0], groupColumn[1])
                         .agg(sum(firstGroupDf215Card.firstQty.cast('float')).alias('secondQty'))
                         .orderBy(groupColumn[0], groupColumn[1]))
-
 # 第三次計算（汽油及柴油的年總銷量）：根據［汽油、柴油］的各自總銷量欄位，計算｛年｝的［汽油、柴油］的總銷量
 thirdGroupDf215Card = (secondGroupDf215Card
                        .groupBy(groupColumn[0])
