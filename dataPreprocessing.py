@@ -59,7 +59,7 @@ df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
                  '113F 1229500',
                  '113F 5100100',
-                 '113F 5100700' ,	'113F 5100800']
+                 '113F 5100700' , '113F 5100800']
 
 #
 # 年度月油品（汽油/柴油）銷售總量
@@ -79,6 +79,8 @@ groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
 # 根據 年、月、油品 欄位，計算 某年某月特定油品的總銷量
 for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
   idxRow
+
+tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).where(tDf215Card.PNO.contains('113F 1209800')).show()
 
 #
 # 同期｛全部｜汽油｜柴油｝銷售總量
