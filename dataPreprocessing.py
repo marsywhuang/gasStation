@@ -2,6 +2,8 @@
 from pyspark.sql.functions import count
 from pyspark.sql.functions import countDistinct
 from pyspark.sql.functions import sum
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
 
 #
 # 加油站服務類型站數統計表
@@ -55,7 +57,6 @@ df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 # 113F 5100100	超級柴油	
 # 113F 5100700	海運輕柴油	
 # 113F 5100800  海運重柴油
-
 productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
                  '113F 1229500',
                  '113F 5100100',
@@ -70,17 +71,69 @@ statColumn = ['PNO', 'TDATE', 'QTY']
 
 # 取出特定欄位
 pDf215Card = df215Card.select(statColumn)
-#
+# 分離日期欄位的年及月至新欄位
 tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
                         .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
 
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
-# 根據 年、月、油品 欄位，計算 某年某月特定油品的總銷量
-for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
+# 第一次計算（汽油及柴油的各自總銷量）：根據｛產品｝欄位，計算｛年｝｛月｝的［汽油、柴油］的各自總銷量
+firstGroupDf215Card = (tDf215Card
+                       .where(tDf215Card.PNO.contains(productColumn[0]) |
+                              tDf215Card.PNO.contains(productColumn[1]) |
+                              tDf215Card.PNO.contains(productColumn[2]) |
+                              tDf215Card.PNO.contains(productColumn[3]) |
+                              tDf215Card.PNO.contains(productColumn[4]))
+                       .groupBy(groupColumn)
+                       .agg(sum(tDf215Card.QTY.cast('float')).alias('firstQty'))
+                       .orderBy(groupColumn))
+# 第二次計算（汽油及柴油的月總銷量）：根據［汽油、柴油］的各自總銷量欄位，計算｛年｝｛月｝的［汽油、柴油］的總銷量
+secondGroupDf215Card = (firstGroupDf215Card
+                        .groupBy(groupColumn[0], groupColumn[1])
+                        .agg(sum(firstGroupDf215Card.firstQty.cast('float')).alias('secondQty'))
+                        .orderBy(groupColumn[0], groupColumn[1]))
+
+# 第三次計算（汽油及柴油的年總銷量）：根據［汽油、柴油］的各自總銷量欄位，計算｛年｝的［汽油、柴油］的總銷量
+thirdGroupDf215Card = (secondGroupDf215Card
+                       .groupBy(groupColumn[0])
+                       .agg(sum(secondGroupDf215Card.secondQty.cast('float')).alias('thirdQty'))
+                       .orderBy(groupColumn[0]))
+
+# 印出結果
+for idxRow in (tDf215Card
+               .where(tDf215Card.PNO.contains(productColumn[0]) |
+                      tDf215Card.PNO.contains(productColumn[1]) |
+                      tDf215Card.PNO.contains(productColumn[2]) |
+                      tDf215Card.PNO.contains(productColumn[3]) |
+                      tDf215Card.PNO.contains(productColumn[4]))
+               .groupBy(firstGroupColumn)
+               .agg(sum(tDf215Card.QTY.cast('float')).alias('aQty'))
+               .orderBy(firstGroupColumn)
+               .collect()):
   idxRow
 
-tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).where(tDf215Card.PNO.contains('113F 1209800')).show()
+# 根據｛年｝｛月｝欄位，計算［汽油］的總銷量
+# 印出結果
+for idxRow in (tDf215Card
+               .where(tDf215Card.PNO.contains(productColumn[0]) |
+                      tDf215Card.PNO.contains(productColumn[1]) |
+                      tDf215Card.PNO.contains(productColumn[2]) |
+                      tDf215Card.PNO.contains(productColumn[3]))
+               .groupBy(firstGroupColumn)
+               .agg(sum(tDf215Card.QTY.cast('float')).alias('aQty'))
+               .orderBy(firstGroupColumn)
+               .collect()):
+  idxRow
+
+# 根據｛年｝｛月｝欄位，計算［柴油］的總銷量
+# 印出結果
+for idxRow in (tDf215Card
+               .where(tDf215Card.PNO.contains(productColumn[4]))
+               .groupBy(firstGroupColumn)
+               .agg(sum(tDf215Card.QTY.cast('float')).alias('aQty'))
+               .orderBy(firstGroupColumn)
+               .collect()):
+  idxRow
 
 #
 # 同期｛全部｜汽油｜柴油｝銷售總量
