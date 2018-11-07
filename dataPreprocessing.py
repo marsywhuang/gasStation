@@ -35,7 +35,7 @@ for idxCol in range(len(df.columns)):
       idxRow
 
 #
-# 年度月油品（汽油/柴油）銷售總量
+# 車隊卡
 #
 
 # 來源路徑
@@ -47,12 +47,27 @@ inputFull = inputPath + "/" + inputFile
 # 讀入來源資料
 df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 
+# 油品項目
+# 113F 1209800	98無鉛汽油	
+# 113F 1209500	95無鉛汽油
+# 113F 1209200	92無鉛汽油	
+# 113F 1229500	酒精汽油
+# 113F 5100100	超級柴油	
+# 113F 5100700	海運輕柴油	
+# 113F 5100800  海運重柴油
+
+productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
+                 '113F 1229500',
+                 '113F 5100100',
+                 '113F 5100700' ,	'113F 5100800']
+
 #
 # 年度月油品（汽油/柴油）銷售總量
 #
 
 # 表列要統計的欄位名稱
 statColumn = ['PNO', 'TDATE', 'QTY']
+
 # 取出特定欄位
 pDf215Card = df215Card.select(statColumn)
 #
