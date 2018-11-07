@@ -71,11 +71,49 @@ for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float
 
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH']
-# 根據｛年｝｛月｝［油品］欄位，計算 計算｛年｝｛月｝［全部］的總銷量
+# 根據｛年｝｛月｝［油品］欄位，計算 計算［全部］的總銷量
 for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
   idxRow
-# 根據｛年｝｛月｝欄位，計算｛年｝｛月｝［汽油］的總銷量
-# 根據｛年｝｛月｝欄位，計算｛年｝｛月｝［柴油］的總銷量
+# 根據｛年｝｛月｝欄位，計算［汽油］的總銷量
+# 根據｛年｝｛月｝欄位，計算［柴油］的總銷量
+
+#
+# 去年度/本年度同期銷量差異
+#
+
+# 表列要統計的欄位名稱
+statColumn = ['CUSAUNT', 'PNO', 'TDATE', 'QTY']
+# 取出特定欄位
+pDf215Card = df215Card.select(statColumn)
+#
+tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
+                        .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
+
+# 群組欄位
+groupColumn = ['CUSAUNT', 'TDATEYEAR', 'TDATEMONTH', 'PNO']
+# 根據｛企業客戶｝｛年｝｛月｝欄位，計算［汽油］的總銷量
+for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
+  idxRow
+  
+#
+# 去年度/本年度同期累計銷量差異
+#
+
+#
+# 銷量佔所有企業客戶比例
+#
+
+#
+# 年度自營站與加盟站銷量比重
+#
+
+#
+# 銷量佔比前10大加油站
+#
+
+#
+# 與去年同期車隊卡差異
+#
 
 #
 # 未使用代碼
