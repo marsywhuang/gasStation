@@ -111,6 +111,20 @@ for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float
 # 銷量佔比前10大加油站
 #
 
+# 表列要統計的欄位名稱
+statColumn = ['CUSAUNT', 'STDNO', 'TDATE', 'QTY']
+# 取出特定欄位
+pDf215Card = df215Card.select(statColumn)
+#
+tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
+                        .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
+
+# 群組欄位
+groupColumn = ['CUSAUNT', 'STDNO', 'TDATEYEAR', 'TDATEMONTH']
+# 根據｛企業客戶｝｛加油站代號｝｛年｝｛月｝欄位，計算［全部］的總銷量
+for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float'))).orderBy(groupColumn).collect():
+  idxRow
+
 #
 # 與去年同期車隊卡差異
 #
