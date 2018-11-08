@@ -21,3 +21,27 @@ inputFull = inputPath + "/" + inputFile
 
 # 讀入來源資料
 df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "false")
+
+# 表列要統計的欄位名稱
+statColumn = ['_c0', '_c3', '_c16']
+# 取出特定欄位
+pDf = df.select(statColumn)
+pDf = (pDf
+       .withColumnRenamed('_c0', 'StdNo')
+       .withColumnRenamed('_c3', 'Date')
+       .withColumnRenamed('_c16', 'Payment'))
+#
+tDf = (pDf.withColumn('dateYear', pDf['Date'].substr(1, 4))
+          .withColumn('dateMonth', pDf['Date'].substr(6, 2)))
+#
+groupColumn = ['StdNo', 'Date', 'DateYear', 'DateMonth']
+#
+stdnoPaymentYearDf = (tDf
+                      .groupBy(groupColumn[0], groupColumn[2], groupColumn[3])
+                      .agg(count(tDf.Payment.alias('aPayment')))
+                      .orderBy(groupColumn[0], groupColumn[2], groupColumn[3]))
+#
+paymentStdnoYearDf = (tDf
+                      .groupBy(groupColumn[2], groupColumn[0], groupColumn[3])
+                      .agg(count(tDf.Payment.alias('aPayment')))
+                      .orderBy(groupColumn[2], groupColumn[0], groupColumn[3]))
