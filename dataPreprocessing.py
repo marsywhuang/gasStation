@@ -1,7 +1,14 @@
+# 載入環境
+import findspark
+findspark.init()
+import pyspark
+from pyspark.sql import SparkSession
+
 # 載入函式庫
 from pyspark.sql.functions import count
 from pyspark.sql.functions import countDistinct
 from pyspark.sql.functions import sum
+from pyspark.sql.functions import desc
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
@@ -223,3 +230,31 @@ for idxRow in tDf215Card.groupBy(groupColumn).agg(sum(tDf215Card.QTY.cast('float
 # 根據 年、月、油品 欄位，計算 某年某月特定油品 次數
 for idxRow in tDf215Card.groupBy(groupColumn).agg(count('PNO')).orderBy(groupColumn).collect():
   idxRow
+
+#
+
+# 表列要統計的欄位名稱
+listDirectory = ['215Card_2017', '215Card_2018']
+# 來源路徑
+inputPath = "/home/mywh/data/resultData/215Card" + "/" + listDirectory[0] + "/" + listDirectory[0] + "*/*.csv"
+# 來源資料
+inputFile = "p*"
+# 完整路徑和資料
+inputFull = inputPath + "/" + inputFile
+
+# 讀入來源資料
+df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "false")
+
+# 表列要統計的欄位名稱
+statColumn = ['_c6', '_c7', '_c18']
+# 取出特定欄位
+pDf215Card = df215Card.select(statColumn)
+
+# 分離日期欄位的年及月至新欄位
+tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['_c6'].substr(1, 4))
+                        .withColumn('TDATEMONTH', pDf215Card['_c6'].substr(5, 2)))
+
+firstGroupDf215Card = (tDf215Card
+                       .groupBy('_c18')
+                       .agg(sum(tDf215Card._c6.cast('float')).alias('firstQty'))
+                       .sort(desc('firstQty')))
