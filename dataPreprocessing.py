@@ -46,6 +46,7 @@ inputPath = "/home/mywh/data/rawData"
 inputFile = "215Card.csv"
 # 完整路徑和資料
 inputFull = inputPath + "/" + inputFile
+
 # 讀入來源資料
 df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 
@@ -103,6 +104,30 @@ thirdGroupDf215Card = (secondGroupDf215Card
 # 印出結果
 for idxRow in (firstGroupDf215Card.collect()):
   idxRow
+
+# 目的路徑
+outputPath = "/home/mywh/data/resultData"
+
+# 目的資料
+outputFile = "yearMonthProductAmountQty-215Card.json"
+# 完整路徑和資料
+outputFull = outputPath + "/" + outputFile
+# 儲存結果
+firstGroupDf215Card.toJSON().coalesce(1).saveAsTextFile(outputFull)
+
+# 目的資料
+outputFile = "yearMonthAmountQty-215Card.json"
+# 完整路徑和資料
+outputFull = outputPath + "/" + outputFile
+# 儲存結果
+secondGroupDf215Card.toJSON().coalesce(1).saveAsTextFile(outputFull)
+
+# 目的資料
+outputFile = "yearAmuntQty-215Card.json"
+# 完整路徑和資料
+outputFull = outputPath + "/" + outputFile
+# 儲存結果
+thirdGroupDf215Card.toJSON().coalesce(1).saveAsTextFile(outputFull)
 
 # 根據｛年｝｛月｝欄位，計算［汽油］的總銷量
 # 印出結果
