@@ -19,24 +19,24 @@ inputFull = inputPath + "/" + inputFile
 df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "false")
 
 # tran_delt 欄位名稱
-# Deptno, Island, Gun_No, Tran_Time, Seq, Tax_Type, Product_ID, Class, Price, Amt,
-# Qty, Unit, Ref_No, Shift
-
+# _c0 Deptno, _c1 Island, _c2 Gun_No, _c3 Tran_Time, _c4 Seq,
+# _c5 Tax_Type, _c6 Product_ID, _c7 Class, _c8 Price, _c9 Amt,
+# _c10 Qty, _c11 Unit, _c12 Ref_No, _c13 Shift
 
 #
 # 加油站－年－月－日》加總（量）
 #
 
 # 表列要統計的欄位名稱
-# _c0 Deptno, _c3 Date, _c9 Qty
-statColumn = ['_c0', '_c3', '_c9']
+# _c0 Deptno, _c3 Date, _c10 Qty
+statColumn = ['_c0', '_c3', '_c10']
 
 # 取出特定欄位
 pDf = df.select(statColumn)
 pDf = (pDf
        .withColumnRenamed('_c0', 'Deptno')
        .withColumnRenamed('_c3', 'Date')
-       .withColumnRenamed('_c9', 'Qty'))
+       .withColumnRenamed('_c10', 'Qty'))
 
 # 轉換日期欄位成為年、月及日等三個欄位
 tDf = (pDf
@@ -60,7 +60,7 @@ stdnoPaymentYearMonthDayDf = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "tranDeltDeptnoPaymentYearMonthDaySum.json"
+outputFile = "tranDelt_DeptnoPaymentYearMonthDay_sQty.json"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -94,7 +94,7 @@ tDf = tDf.drop(tDf.Date)
 groupColumn = ['Deptno', 'ProductId', 'dateYear', 'dateMonth', 'dateDay']
 
 # 加油站－產品－年－月－日》計數（筆數）
-deptnoProductidYearMonthDayDf = (tDf
+deptnoProductidYearMonthDay = (tDf
                               .groupBy(groupColumn)
                               .agg(count(tDf.ProductId).alias('aProductId'))
                               .orderBy(groupColumn))
@@ -102,12 +102,49 @@ deptnoProductidYearMonthDayDf = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "tranDeltDeptnoProductidYearMonthDayCount.json"
+outputFile = "tranDelt_DeptnoProductidYearMonthDay_cProductID.json"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
 deptnoProductidYearMonthDayDf.write.format('json').save(outputFull)
 
+#
 # 加油站－金額（小於等於249）－年－月－日》計數（筆數）
 # 加油站－金額（大於250）－年－月－日》計數（筆數）
+#
 
+# 表列要統計的欄位名稱
+# _c0 Deptno, _c3 Date, _c9 Amt
+statColumn = ['_c0', '_c3', '_c9']
+
+# 取出特定欄位
+pDf = df.select(statColumn)
+pDf = (pDf
+       .withColumnRenamed('_c0', 'Deptno')
+       .withColumnRenamed('_c3', 'Date')
+       .withColumnRenamed('_c9', 'Amt'))
+
+# 轉換日期欄位成為年、月及日等三個欄位
+tDf = (pDf
+       .withColumn('dateYear', pDf['Date'].substr(1, 4))
+       .withColumn('dateMonth', pDf['Date'].substr(6, 2))
+       .withColumn('dateDay', pDf['Date'].substr(9, 2)))
+
+# 刪除不必要欄位
+tDf = tDf.drop(tDf.Date)
+
+#
+deptnoYearMonthDay = (tDf
+                      .groupBy(groupColumn)
+                      .agg(count(when((col("Amt").cast('float') < 250), True)).alias('aBike'),
+                           count(when((col("Amt").cast('float') >= 250), True)).alias('aCar'))
+                      .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "tranDelt_deptnoYearMonthDay_cAmt.json"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYearMonthDay.write.format('json').save(outputFull)
