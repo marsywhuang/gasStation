@@ -5,14 +5,10 @@ import pyspark
 from pyspark.sql import SparkSession
 
 # 載入函式庫
-from pyspark.sql.functions import count
-from pyspark.sql.functions import countDistinct
 from pyspark.sql.functions import sum
-from pyspark.sql.functions import desc
 
 # 來源路徑
 inputPath = "/home/cpc/data/resultData/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*.csv"
-inputPath = "/home/cpc/data/resultData/tranDelt/tranDelt_2017/tranDelt_201701/tranDelt_201701*.csv"
 
 # 來源資料
 inputFile = "p*"
@@ -36,6 +32,7 @@ tDf = (pDf
        .withColumn('dateMonth', pDf['Date'].substr(6, 2))
        .withColumn('dateDay', pDf['Date'].substr(9, 2)))
 
+#
 tDf = tDf.drop(tDf.Date)
 #
 groupColumn = ['StdNo', 'dateYear', 'dateMonth', 'dateDay']
