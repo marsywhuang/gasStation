@@ -38,7 +38,7 @@ groupColumn = ['StdNo', 'Date', 'Qty', 'dateYear', 'dateMonth', 'dateDay']
 #
 stdnoPaymentYearDf = (tDf
                       .groupBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5])
-                      .agg(sum(tDf.Qty.cast('float').alias('aQty')))
+                      .agg(sum(tDf.Qty.cast('float')).alias('aQty'))
                       .orderBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5]))
 
 
