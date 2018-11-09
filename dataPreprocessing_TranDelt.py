@@ -93,6 +93,16 @@ deptnoProductidYearMonthDayDf = (tDf
                               .agg(count(tDf.ProductId).alias('aProductId'))
                               .orderBy(groupColumn))
 
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "tranDeltDeptnoProductidYearMonthDaySum.json"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoProductidYearMonthDayDf.write.format('json').save(outputFull)
+
 # 加油站－金額（小於等於249）－年－月－日》計數（筆數）
 
 # 加油站－金額（大於250）－年－月－日》計數（筆數）
