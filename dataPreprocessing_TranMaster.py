@@ -41,16 +41,6 @@ stdnoPaymentYearDf = (tDf
                       .groupBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5])
                       .agg(count(tDf.Payment.alias('aPayment')))
                       .orderBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5]))
-#
-stdnoPaymentYearMonthDf = (tDf
-                      .groupBy(groupColumn[0], groupColumn[2], groupColumn[3])
-                      .agg(count(tDf.Payment.alias('aPayment')))
-                      .orderBy(groupColumn[0], groupColumn[2], groupColumn[3]))
-#
-paymentStdnoYearDf = (tDf
-                      .groupBy(groupColumn[2], groupColumn[0], groupColumn[3])
-                      .agg(count(tDf.Payment.alias('aPayment')))
-                      .orderBy(groupColumn[2], groupColumn[0], groupColumn[3]))
 
 
 # 路徑
