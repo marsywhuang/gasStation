@@ -9,11 +9,9 @@ from pyspark.sql.functions import count
 from pyspark.sql.functions import countDistinct
 from pyspark.sql.functions import sum
 from pyspark.sql.functions import desc
-from pyspark.sql import functions as F
-from pyspark.sql.window import Window
 
 # 來源路徑
-inputPath = "/home/mywh/data/resultData/tranMaster_20170*/tranMaster_20170*.csv"
+inputPath = "/home/cpc/data/resultData/tranMaster/tranMaster_*/tranMaster_*/tranMaster_*.csv"
 # 來源資料
 inputFile = "p*"
 # 完整路徑和資料
@@ -34,16 +32,15 @@ pDf = (pDf
 tDf = (pDf
        .withColumn('dateYear', pDf['Date'].substr(1, 4))
        .withColumn('dateMonth', pDf['Date'].substr(6, 2))
-       .withColumn('dateDay', pDf['Date'].substr(9, 2))
-      )
+       .withColumn('dateDay', pDf['Date'].substr(9, 2)))
 #
 groupColumn = ['StdNo', 'Date', 'Payment', 'DateYear', 'DateMonth', 'DateDay']
 paymentColumn = ['900', '901', '902', '903', '905', '906', '907', '931', '933']
 #
 stdnoPaymentYearDf = (tDf
-                      .groupBy(groupColumn[0], groupColumn[2], groupColumn[4], groupColumn[5])
+                      .groupBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5])
                       .agg(count(tDf.Payment.alias('aPayment')))
-                      .orderBy(groupColumn[0], groupColumn[2], groupColumn[4], groupColumn[5]))
+                      .orderBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5]))
 #
 stdnoPaymentYearMonthDf = (tDf
                       .groupBy(groupColumn[0], groupColumn[2], groupColumn[3])
