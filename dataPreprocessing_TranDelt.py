@@ -23,14 +23,18 @@ df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "false")
 # Qty, Unit, Ref_No, Shift
 
 
+#
+# 加油站－年－月－日》加總（量）
+#
+
 # 表列要統計的欄位名稱
-# _c0 StdNo, _c3 Date, _c9 Qty
+# _c0 Deptno, _c3 Date, _c9 Qty
 statColumn = ['_c0', '_c3', '_c9']
 
 # 取出特定欄位
 pDf = df.select(statColumn)
 pDf = (pDf
-       .withColumnRenamed('_c0', 'StdNo')
+       .withColumnRenamed('_c0', 'Deptno')
        .withColumnRenamed('_c3', 'Date')
        .withColumnRenamed('_c9', 'Qty'))
 
@@ -44,7 +48,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Date)
 
 # 群組欄位
-groupColumn = ['StdNo', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
 
 # 加油站－年－月－日》加總（量）
 stdnoPaymentYearMonthDayDf = (tDf
@@ -56,13 +60,15 @@ stdnoPaymentYearMonthDayDf = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "tranDeltStdnoPaymentYearMonthDaySum.json"
+outputFile = "tranDeltDeptnoPaymentYearMonthDaySum.json"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
 stdnoPaymentYearDf.write.format('json').save(outputFull)
 
+#
 # 加油站－產品－年－月－日》計數（筆數）
+#
 
 # 表列要統計的欄位名稱
 # _c0 Deptno, _c3 Tran_Time, _c6 Product_ID
@@ -87,12 +93,11 @@ tDf = tDf.drop(tDf.Date)
 # 群組欄位
 groupColumn = ['Deptno', 'ProductId', 'dateYear', 'dateMonth', 'dateDay']
 
-# 加油站－年－月－日》加總（量）
+# 加油站－產品－年－月－日》計數（筆數）
 deptnoProductidYearMonthDayDf = (tDf
                               .groupBy(groupColumn)
                               .agg(count(tDf.ProductId).alias('aProductId'))
                               .orderBy(groupColumn))
-
 
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
@@ -104,6 +109,5 @@ outputFull = outputPath + "/" + outputFile
 deptnoProductidYearMonthDayDf.write.format('json').save(outputFull)
 
 # 加油站－金額（小於等於249）－年－月－日》計數（筆數）
-
 # 加油站－金額（大於250）－年－月－日》計數（筆數）
 
