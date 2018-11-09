@@ -45,7 +45,7 @@ stdnoPaymentYearDf = (tDf
 # 路徑
 outputPath = "/home/cpc/data/resultData"
 # 資料
-outputFile = "stdnoPaymentYearMonthDaySum.json"
+outputFile = "tranDeltStdnoPaymentYearMonthDaySum.json"
 # 完整路徑和資料
 outputFull = outputPath + "/" + outputFile
 #
