@@ -7,6 +7,8 @@ from pyspark.sql import SparkSession
 # 載入函式庫
 from pyspark.sql.functions import sum
 from pyspark.sql.functions import count
+from pyspark.sql.functions import col
+from pyspark.sql.functions import when
 
 # 來源路徑
 inputPath = "/home/cpc/data/resultData/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*.csv"
