@@ -21,26 +21,34 @@ inputFull = inputPath + "/" + inputFile
 df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "false")
 
 # 表列要統計的欄位名稱
+# _c0 StdNo, _c3 Date, _c16 Payment
 statColumn = ['_c0', '_c3', '_c16']
+
 # 取出特定欄位
 pDf = df.select(statColumn)
 pDf = (pDf
        .withColumnRenamed('_c0', 'StdNo')
        .withColumnRenamed('_c3', 'Date')
        .withColumnRenamed('_c16', 'Payment'))
-#
+
+# 重製日期格式
 tDf = (pDf
        .withColumn('dateYear', pDf['Date'].substr(1, 4))
        .withColumn('dateMonth', pDf['Date'].substr(6, 2))
        .withColumn('dateDay', pDf['Date'].substr(9, 2)))
+
+# 刪除不使用欄位
+tDf = tDf.drop(tDf.Date)
+
 #
-groupColumn = ['StdNo', 'Date', 'Payment', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ['StdNo', 'Payment', 'dateYear', 'dateMonth', 'dateDay']
 paymentColumn = ['900', '901', '902', '903', '905', '906', '907', '931', '933']
+
 #
 stdnoPaymentYearDf = (tDf
-                      .groupBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5])
+                      .groupBy(groupColumn)
                       .agg(count(tDf.Payment.alias('aPayment')))
-                      .orderBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5]))
+                      .orderBy(groupColumn))
 
 
 # 路徑
