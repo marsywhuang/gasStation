@@ -12,6 +12,8 @@ from pyspark.sql.functions import desc
 
 # 來源路徑
 inputPath = "/home/cpc/data/resultData/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*.csv"
+inputPath = "/home/cpc/data/resultData/tranDelt/tranDelt_2017/tranDelt_201701/tranDelt_201701*.csv"
+
 # 來源資料
 inputFile = "p*"
 # 完整路徑和資料
@@ -33,13 +35,15 @@ tDf = (pDf
        .withColumn('dateYear', pDf['Date'].substr(1, 4))
        .withColumn('dateMonth', pDf['Date'].substr(6, 2))
        .withColumn('dateDay', pDf['Date'].substr(9, 2)))
+
+tDf = tDf.drop(tDf.Date)
 #
-groupColumn = ['StdNo', 'Date', 'Qty', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ['StdNo', 'dateYear', 'dateMonth', 'dateDay']
 #
 stdnoPaymentYearDf = (tDf
-                      .groupBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5])
+                      .groupBy(groupColumn)
                       .agg(sum(tDf.Qty.cast('float')).alias('aQty'))
-                      .orderBy(groupColumn[0], groupColumn[2], groupColumn[3], groupColumn[4], groupColumn[5]))
+                      .orderBy(groupColumn))
 
 
 # 路徑
