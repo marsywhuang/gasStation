@@ -34,7 +34,7 @@ tDf = (pDf
        .withColumn('dateMonth', pDf['Date'].substr(6, 2))
        .withColumn('dateDay', pDf['Date'].substr(9, 2)))
 #
-groupColumn = ['StdNo', 'Date', 'Payment', 'DateYear', 'DateMonth', 'DateDay']
+groupColumn = ['StdNo', 'Date', 'Payment', 'dateYear', 'dateMonth', 'dateDay']
 paymentColumn = ['900', '901', '902', '903', '905', '906', '907', '931', '933']
 #
 stdnoPaymentYearDf = (tDf
@@ -51,3 +51,13 @@ paymentStdnoYearDf = (tDf
                       .groupBy(groupColumn[2], groupColumn[0], groupColumn[3])
                       .agg(count(tDf.Payment.alias('aPayment')))
                       .orderBy(groupColumn[2], groupColumn[0], groupColumn[3]))
+
+
+# 路徑
+outputPath = "/home/cpc/data/resultData"
+# 資料
+outputFile = "stdnoPaymentYearMonthDayCount.json"
+# 完整路徑和資料
+outputFull = outputPath + "/" + outputFile
+#
+stdnoPaymentYearDf.write.format('json').save(outputFull)
