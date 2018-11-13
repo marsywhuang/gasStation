@@ -2,7 +2,7 @@
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
 //
-val inputPath = "/home/cpc/data"
+val inputPath = "/home/cpc/data/rawData"
 val inputFileName = "tran_detl106.csv"
 val inputFull = inputPath + "/" + inputFileName
 val df = sqlContext.read.format("csv").option("header", "true").load(inputFull)
@@ -26,7 +26,8 @@ for (idxYear <- 0 to (dtYear.length - 1)) {
       val outputFll = outputPath + "/" + outputFileName
       //
       val filterDf = df.filter($"Tran_Time".contains(dtRange))
-      filterDf.write.csv(outputFll)
+      // 輸出檔案具有標題
+      filterDf.write.format("com.databricks.spark.csv").option("header", "true").csv(outputFll)
     }
   }
 }
