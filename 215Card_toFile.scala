@@ -36,7 +36,7 @@ for (idxYear <- 0 to (dtYear.length - 1)) {
       val outputFll = outputPath + "/" + outputFileName
       //
       val filterDf = df.filter($"TDate".contains(dtRange))
-      filterDf.write.csv(outputFll)
+      filterDf.write.csv(outputFll, header=True)
     }
   }
 }
