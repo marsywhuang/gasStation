@@ -7,7 +7,7 @@ import org.apache.spark.sql
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
 
 // 來源目錄名稱
-val inputPath = "/home/cpc/data"
+val inputPath = "/home/cpc/data/rawData"
 // 來源檔案名稱
 val inputFileName = "215Card.csv"
 // 整體目錄及檔案名稱
@@ -22,7 +22,7 @@ val dtMonth : List[String] = List("01", "02", "03", "04", "05", "06", "07", "08"
 val dtDay : List[String] = List("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28")
 
 //
-val outputPath = "/home/cpc/data"
+val outputPath = "/home/cpc/data/resultData"
 //
 for (idxYear <- 0 to (dtYear.length - 1)) {
   for (idxMonth <- 0 to (dtMonth.length - 1)) {
@@ -36,7 +36,7 @@ for (idxYear <- 0 to (dtYear.length - 1)) {
       val outputFll = outputPath + "/" + outputFileName
       //
       val filterDf = df.filter($"TDate".contains(dtRange))
-      filterDf.write.csv(outputFll, header=True)
+      filterDf.write.format("com.databricks.spark.csv").option("header", "true").csv(outputFll)
     }
   }
 }
