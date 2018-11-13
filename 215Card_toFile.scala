@@ -36,6 +36,7 @@ for (idxYear <- 0 to (dtYear.length - 1)) {
       val outputFll = outputPath + "/" + outputFileName
       //
       val filterDf = df.filter($"TDate".contains(dtRange))
+      // 輸出檔案具有標題
       filterDf.write.format("com.databricks.spark.csv").option("header", "true").csv(outputFll)
     }
   }
