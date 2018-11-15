@@ -49,8 +49,11 @@ for idxCol in range(len(df.columns)):
 
 # 來源路徑
 inputPath = "/home/mywh/data/rawData"
+inputPath = "/home/mywh/data/resultData/215Card/215Card_*/215Card_*/215Card_*.csv"
+
 # 來源資料
 inputFile = "215Card.csv"
+inputFile = "p*"
 # 完整路徑和資料
 inputFull = inputPath + "/" + inputFile
 
@@ -75,13 +78,22 @@ productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
 #
 
 # 表列要統計的欄位名稱
+# RID, CTYPE, STDNO, PNO, UNT, LDATE, TDATE, QTY, STRNO, TNO,
+# MRK3, MRK4, MRK5, TICKETNO, SHIP, CARNO, PNAME, TICKETTYPE, CUSAUNT, CUSMUNT,
+# TTIME, CARDMNO, CTYPEMK, MILE, PRICE, CNO, BILLNO, ATYPE, ADATE, RDATE,
+# MDATE, SID, YYMM, BPRICE, SPRICE, MK1, MK2, MK3, S3_SEQNO, ISLAND_NO,
+# GUN_NO, EDC_VERSION
+
 statColumn = ['PNO', 'TDATE', 'QTY']
+statColumn = ['_c3', '_c6', '_c7']
 
 # 取出特定欄位
 pDf215Card = df215Card.select(statColumn)
 # 分離日期欄位的年及月至新欄位
 tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
                         .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
+tDf215Card = (pDf215Card.withColumn('_c6YEAR', pDf215Card['_c6'].substr(1, 4))
+                        .withColumn('_c6MONTH', pDf215Card['_c6'].substr(5, 2)))
 
 # 取出特定產品
 productGroupDf215Card = (tDf215Card
@@ -90,8 +102,17 @@ productGroupDf215Card = (tDf215Card
                      tDf215Card.PNO.contains(productColumn[2]) |
                      tDf215Card.PNO.contains(productColumn[3]) |
                      tDf215Card.PNO.contains(productColumn[4])))
+productGroupDf215Card = (tDf215Card
+              .where(tDf215Card._c3.contains(productColumn[0]) |
+                     tDf215Card._c3.contains(productColumn[1]) |
+                     tDf215Card._c3.contains(productColumn[2]) |
+                     tDf215Card._c3.contains(productColumn[3]) |
+                     tDf215Card._c3.contains(productColumn[4])))
+
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
+groupColumn = ['_c6YEAR', '_c6MONTH', '_c3']
+
 # 第一次計算（汽油及柴油的各自總銷量）：根據｛產品｝欄位，計算｛年｝｛月｝的［汽油、柴油］的各自總銷量
 firstGroupDf215Card = (productGroupDf215Card
                        .groupBy(groupColumn)
@@ -108,7 +129,7 @@ thirdGroupDf215Card = (secondGroupDf215Card
                        .agg(sum(secondGroupDf215Card.secondQty.cast('float')).alias('thirdQty'))
                        .orderBy(groupColumn[0]))
 
-# 印出結果
+# 印出第一次計算的結果
 for idxRow in (firstGroupDf215Card.collect()):
   idxRow
 
@@ -119,45 +140,37 @@ outputPath = "/home/mywh/data/resultData"
 outputFile = "yearMonthProductAmountQty-215Card.json"
 # 完整路徑和資料
 outputFull = outputPath + "/" + outputFile
-# 儲存結果
+# 儲存出第一次計算的結果
 firstGroupDf215Card.toJSON().coalesce(1).saveAsTextFile(outputFull)
 
 # 目的資料
 outputFile = "yearMonthAmountQty-215Card.json"
 # 完整路徑和資料
 outputFull = outputPath + "/" + outputFile
-# 儲存結果
+# 儲存出第二次計算的結果
 secondGroupDf215Card.toJSON().coalesce(1).saveAsTextFile(outputFull)
 
 # 目的資料
 outputFile = "yearAmuntQty-215Card.json"
 # 完整路徑和資料
 outputFull = outputPath + "/" + outputFile
-# 儲存結果
+# 儲存出第三次計算的結果
 thirdGroupDf215Card.toJSON().coalesce(1).saveAsTextFile(outputFull)
 
 # 根據｛年｝｛月｝欄位，計算［汽油］的總銷量
-# 印出結果
-for idxRow in (tDf215Card
-               .where(tDf215Card.PNO.contains(productColumn[0]) |
-                      tDf215Card.PNO.contains(productColumn[1]) |
-                      tDf215Card.PNO.contains(productColumn[2]) |
-                      tDf215Card.PNO.contains(productColumn[3]))
-               .groupBy(firstGroupColumn)
-               .agg(sum(tDf215Card.QTY.cast('float')).alias('aQty'))
-               .orderBy(firstGroupColumn)
-               .collect()):
-  idxRow
+
+# 取出汽油類產品組合
+gasolineDf215Card = (tDf215Card
+                     .where(tDf215Card.PNO.contains(productColumn[0]) |
+                            tDf215Card.PNO.contains(productColumn[1]) |
+                            tDf215Card.PNO.contains(productColumn[2]) |
+                            tDf215Card.PNO.contains(productColumn[3])))
 
 # 根據｛年｝｛月｝欄位，計算［柴油］的總銷量
-# 印出結果
-for idxRow in (tDf215Card
-               .where(tDf215Card.PNO.contains(productColumn[4]))
-               .groupBy(firstGroupColumn)
-               .agg(sum(tDf215Card.QTY.cast('float')).alias('aQty'))
-               .orderBy(firstGroupColumn)
-               .collect()):
-  idxRow
+
+# 取出柴油類產品組合
+dieselDf215Card = (tDf215Card
+                   .where(tDf215Card.PNO.contains(productColumn[4])))
 
 #
 # 同期｛全部｜汽油｜柴油｝銷售總量
