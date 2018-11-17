@@ -85,33 +85,27 @@ productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
 # GUN_NO, EDC_VERSION
 
 statColumn = ['PNO', 'TDATE', 'QTY']
-statColumn = ['_c3', '_c6', '_c7']
 
 # 取出特定欄位
 pDf215Card = df215Card.select(statColumn)
 # 分離日期欄位的年及月至新欄位
 tDf215Card = (pDf215Card.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
                         .withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
-tDf215Card = (pDf215Card.withColumn('_c6YEAR', pDf215Card['_c6'].substr(1, 4))
-                        .withColumn('_c6MONTH', pDf215Card['_c6'].substr(5, 2)))
 
-# 取出特定產品
+# 取出特定產品－汽油
 productGroupDf215Card = (tDf215Card
-              .where(tDf215Card.PNO.contains(productColumn[0]) |
-                     tDf215Card.PNO.contains(productColumn[1]) |
-                     tDf215Card.PNO.contains(productColumn[2]) |
-                     tDf215Card.PNO.contains(productColumn[3]) |
-                     tDf215Card.PNO.contains(productColumn[4])))
+                         .where(tDf215Card.PNO.contains(productColumn[0]) |
+                                tDf215Card.PNO.contains(productColumn[1]) |
+                                tDf215Card.PNO.contains(productColumn[2]) |
+                                tDf215Card.PNO.contains(productColumn[3]) |
+                                tDf215Card.PNO.contains(productColumn[4])))
+
+# 取出特定產品－柴油
 productGroupDf215Card = (tDf215Card
-              .where(tDf215Card._c3.contains(productColumn[0]) |
-                     tDf215Card._c3.contains(productColumn[1]) |
-                     tDf215Card._c3.contains(productColumn[2]) |
-                     tDf215Card._c3.contains(productColumn[3]) |
-                     tDf215Card._c3.contains(productColumn[4])))
+                         .where(tDf215Card.PNO.contains(productColumn[5])))
 
 # 群組欄位
 groupColumn = ['TDATEYEAR', 'TDATEMONTH', 'PNO']
-groupColumn = ['_c6YEAR', '_c6MONTH', '_c3']
 
 # 第一次計算（汽油及柴油的各自總銷量）：根據｛產品｝欄位，計算｛年｝｛月｝的［汽油、柴油］的各自總銷量
 firstGroupDf215Card = (productGroupDf215Card
