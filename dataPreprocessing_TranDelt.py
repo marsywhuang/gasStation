@@ -22,7 +22,7 @@ inputFull = inputPath + "/" + inputFile
 df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 
 #
-# 加油站－年－月－日》加總（量）
+# 加油站－年－月－日》計算油銷總量
 #
 
 # 表列要統計的欄位名稱
@@ -42,7 +42,7 @@ tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
-# 加油站－年－月－日》加總（量）
+# 加油站－年－月－日》計算油銷總量
 deptnoYMDaQty = (tDf
                  .groupBy(groupColumn)
                  .agg(sum(tDf.Qty.cast('float')).alias('aQty'))
@@ -59,7 +59,7 @@ outputFull = outputPath + "/" + outputFile
 stdnoPaymentYearDf.write.format('json').save(outputFull)
 
 #
-# 加油站－產品－年－月－日》計數（筆數）
+# 加油站－年－月－日－產品》計數（筆數）
 #
 
 # 表列要統計的欄位名稱
@@ -78,7 +78,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
-groupColumn = ['Deptno', 'ProductId', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay', 'ProductId']
 # 加油站－產品－年－月－日》計數（筆數）
 deptnoYMDaProductid = (tDf
                        .groupBy(groupColumn)
@@ -117,6 +117,7 @@ tDf = tDf.drop(tDf.Tran_Time)
 #
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYMDaAmt = (tDf
                  .groupBy(groupColumn)
                  .agg(count(when((col("Amt").cast('float') < 250), True)).alias('aBike'),
@@ -133,7 +134,7 @@ outputFull = outputPath + "/" + outputFile
 deptnoYMDaAmt.write.format('json').save(outputFull)
 
 #
-#
+# 加油站－年－月》計算各類產品筆數
 #
 
 # 產品
@@ -153,7 +154,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth']
-# 加油站－產品－年－月－日》計數（筆數）
+# 加油站－年－月》計算各類產品筆數
 deptnoYMaProductid = (tDf
                        .groupBy(groupColumn)
                        .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('a'+productidColumn[0]),
@@ -166,7 +167,7 @@ deptnoYMaProductid = (tDf
                        .orderBy(groupColumn))
 
 #
-#
+# 加油站－年－月》計算各類類別筆數
 #
 
 # 類別
@@ -190,7 +191,8 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
-groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ['Deptno', 'dateYear', 'dateMonth']
+# 加油站－年－月》計算各類類別筆數
 deptnoYMDaClass = (tDf
                    .groupBy(groupColumn)
                    .agg(count(when((col("Class") == classColumn[0]), True)).alias('a'+classColumn[0]),
