@@ -347,6 +347,46 @@ outputFull = outputPath + "/" + outputFile
 # 匯出資料
 deptnoYMDcAmt.write.format('json').save(outputFull)
 
+######
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+deptnoYMcAmt = (tDf
+                 .groupBy(groupColumn)
+                 .agg(count(when((col("Amt").cast('float') < 250), True)).alias('cBike'),
+                      count(when((col("Amt").cast('float') >= 250), True)).alias('cCar'))
+                 .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoYMcAmt"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMcAmt.write.format('json').save(outputFull)
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+deptnoYcAmt = (tDf
+                 .groupBy(groupColumn)
+                 .agg(count(when((col("Amt").cast('float') < 250), True)).alias('cBike'),
+                      count(when((col("Amt").cast('float') >= 250), True)).alias('cCar'))
+                 .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoYMcAmt"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYcAmt.write.format('json').save(outputFull)
+
+######
+
 # 3.3 加油站的發油量：加油站-年-月-日-發油量
 # 產品
 productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
