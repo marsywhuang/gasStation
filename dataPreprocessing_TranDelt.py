@@ -10,16 +10,27 @@ from pyspark.sql.functions import count
 from pyspark.sql.functions import col
 from pyspark.sql.functions import when
 
+#
+# 匯入來源資料
+#
+
 # 來源路徑
 inputPath = "/home/cpc/data/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*.csv"
-
 # 來源資料
 inputFile = "p*"
 # 完整路徑和資料
 inputFull = inputPath + "/" + inputFile
-
 # 讀入來源資料
 df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
+
+# 來源路徑
+inputPath = "/home/cpc/data/rawData"
+# 來源資料
+inputFile = "gasInfo.csv"
+# 完整路徑和資料
+inputFull = inputPath + "/" + inputFile
+# 讀入來源資料
+dfGasInfo = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 
 #
 # 加油站－年－月－日》計算油銷總量
@@ -234,6 +245,7 @@ tDf = (pDf
        .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
+
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
 # 加油站－年－月－日》計算汽油及柴油產品筆數
@@ -282,7 +294,7 @@ deptnoYMcProductid.write.format('json').save(outputFull)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear']
-# 加油站－年－月》計算汽油及柴油產品筆數
+# 加油站－年》計算汽油及柴油產品筆數
 deptnoYcProductid = (tDf
                        .groupBy(groupColumn)
                        .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
@@ -303,6 +315,49 @@ outputFull = outputPath + "/" + outputFile
 deptnoYcProductid.write.format('json').save(outputFull)
 
 ######
+
+############
+
+# 產品
+productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
+                   '113F 5100100',
+                   '113F 5100700', '113F 5100800']
+# 表列要統計的欄位名稱
+statColumn = ['Deptno', 'Tran_Time', 'Product_ID']
+# 取出特定欄位
+pDf = df.select(statColumn)
+# 轉換日期欄位成為年、月及日等三個欄位
+tDf = (pDf
+       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
+       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
+       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop(tDf.Tran_Time)
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+# 加油站－年－月－日》計算汽油及柴油產品筆數
+deptnoYMDcProductid = (tDf
+                       .groupBy(groupColumn)
+                       .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
+                            count(when((col("Product_ID").contains(productidColumn[1])), True)).alias('c'+productidColumn[1]),
+                            count(when((col("Product_ID").contains(productidColumn[2])), True)).alias('c'+productidColumn[2]),
+                            count(when((col("Product_ID").contains(productidColumn[3])), True)).alias('c'+productidColumn[3]),
+                            count(when((col("Product_ID").contains(productidColumn[4])), True)).alias('c'+productidColumn[4]),
+                            count(when((col("Product_ID").contains(productidColumn[5])), True)).alias('c'+productidColumn[5]),
+                            count(when((col("Product_ID").contains(productidColumn[6])), True)).alias('c'+productidColumn[6]))
+                       .orderBy(groupColumn))
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "cityItemGasDieselYMDcProductid"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDcProductid.write.format('json').save(outputFull)
+
+############
+
 
 # 3.2 汽、機車加油筆數：加油站-年-月-日-車種（Amt > 249 | Amt < 250）-筆數
 # 產品
@@ -328,7 +383,7 @@ tDf = (pDf
        .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
-#
+
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
 # 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
@@ -341,7 +396,7 @@ deptnoYMDcAmt = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoYMDcAmt"
+outputFile = "deptnoItemGasDieseYMDcAmt"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -351,7 +406,7 @@ deptnoYMDcAmt.write.format('json').save(outputFull)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth']
-# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+# 加油站－年－月》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYMcAmt = (tDf
                  .groupBy(groupColumn)
                  .agg(count(when((col("Amt").cast('float') < 250), True)).alias('cBike'),
@@ -369,7 +424,7 @@ deptnoYMcAmt.write.format('json').save(outputFull)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear']
-# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+# 加油站－年》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYcAmt = (tDf
                  .groupBy(groupColumn)
                  .agg(count(when((col("Amt").cast('float') < 250), True)).alias('cBike'),
@@ -379,7 +434,7 @@ deptnoYcAmt = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoYcAmt"
+outputFile = "deptnoItemGasDieseYcAmt"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -423,7 +478,7 @@ deptnoYMDsQty = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoYMDsQty"
+outputFile = "deptnoItemGasDieseYMDsQty"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -433,7 +488,7 @@ deptnoYMDsQty.write.format('json').save(outputFull)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth']
-# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+# 加油站－年－月》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYMDsQty = (tDf
                  .groupBy(groupColumn)
                  .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
@@ -450,7 +505,7 @@ deptnoYMDsQty.write.format('json').save(outputFull)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear']
-# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+# 加油站－年》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYMDsQty = (tDf
                  .groupBy(groupColumn)
                  .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
