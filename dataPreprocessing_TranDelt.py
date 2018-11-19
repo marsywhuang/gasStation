@@ -11,7 +11,7 @@ from pyspark.sql.functions import col
 from pyspark.sql.functions import when
 
 # 來源路徑
-inputPath = "/home/cpc/data/tranDelt/tranDelt_2017/tranDelt_*/tranDelt_*.csv"
+inputPath = "/home/cpc/data/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*.csv"
 
 # 來源資料
 inputFile = "p*"
@@ -82,7 +82,7 @@ groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay', 'ProductId']
 # 加油站－產品－年－月－日》計數（筆數）
 deptnoYMDaProductid = (tDf
                        .groupBy(groupColumn)
-                       .agg(count(tDf.ProductId).alias('aProductId'))
+                       .agg(count(tDf.ProductId).alias('cProductId'))
                        .orderBy(groupColumn))
 
 # 目的路徑
@@ -101,19 +101,15 @@ deptnoProductidYearMonthDayDf.write.format('json').save(outputFull)
 
 # 表列要統計的欄位名稱
 statColumn = ['Deptno', 'Tran_Time', 'Amt']
-
 # 取出特定欄位
 pDf = df.select(statColumn)
-
 # 轉換日期欄位成為年、月及日等三個欄位
 tDf = (pDf
        .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
        .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
        .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
-
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
-
 #
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
@@ -153,9 +149,9 @@ tDf = (pDf
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
 # 群組欄位
-groupColumn = ['Deptno', 'dateYear', 'dateMonth']
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
 # 加油站－年－月》計算各類產品筆數
-deptnoYMaProductid = (tDf
+deptnoYMDaProductid = (tDf
                        .groupBy(groupColumn)
                        .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('a'+productidColumn[0]),
                             count(when((col("Product_ID").contains(productidColumn[1])), True)).alias('a'+productidColumn[1]),
@@ -165,6 +161,14 @@ deptnoYMaProductid = (tDf
                             count(when((col("Product_ID").contains(productidColumn[5])), True)).alias('a'+productidColumn[5]),
                             count(when((col("Product_ID").contains(productidColumn[6])), True)).alias('a'+productidColumn[6]))
                        .orderBy(groupColumn))
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoYMDaProductid.json"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDaProductid.write.format('json').save(outputFull)
 
 #
 # 加油站－年－月》計算各類類別筆數
@@ -209,3 +213,130 @@ deptnoYMDaClass = (tDf
                         count(when((col("Class") == classColumn[11]), True)).alias('a'+classColumn[11]),
                         count(when((col("Class") == classColumn[12]), True)).alias('a'+classColumn[12]))
                    .orderBy(groupColumn))
+
+#
+# 坤神要的
+#
+
+# 3.1 各油品銷售次數：加油站-年-月-日-油品-筆數
+# 產品
+productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
+                   '113F 5100100',
+                   '113F 5100700', '113F 5100800']
+# 表列要統計的欄位名稱
+statColumn = ['Deptno', 'Tran_Time', 'Product_ID']
+# 取出特定欄位
+pDf = df.select(statColumn)
+# 轉換日期欄位成為年、月及日等三個欄位
+tDf = (pDf
+       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
+       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
+       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop(tDf.Tran_Time)
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+# 加油站－年－月》計算各類產品筆數
+deptnoYMDcProductid = (tDf
+                       .groupBy(groupColumn)
+                       .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
+                            count(when((col("Product_ID").contains(productidColumn[1])), True)).alias('c'+productidColumn[1]),
+                            count(when((col("Product_ID").contains(productidColumn[2])), True)).alias('c'+productidColumn[2]),
+                            count(when((col("Product_ID").contains(productidColumn[3])), True)).alias('c'+productidColumn[3]),
+                            count(when((col("Product_ID").contains(productidColumn[4])), True)).alias('c'+productidColumn[4]),
+                            count(when((col("Product_ID").contains(productidColumn[5])), True)).alias('c'+productidColumn[5]),
+                            count(when((col("Product_ID").contains(productidColumn[6])), True)).alias('c'+productidColumn[6]))
+                       .orderBy(groupColumn))
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoYMDcProductid"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDcProductid.write.format('json').save(outputFull)
+
+# 3.2 汽、機車加油筆數：加油站-年-月-日-車種（Amt > 249 | Amt < 250）-筆數
+# 產品
+productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
+                   '113F 5100100',
+                   '113F 5100700', '113F 5100800']
+# 取出符合產品項目的資料記錄
+fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
+               df.Product_ID.contains(productidColumn[1]) |
+               df.Product_ID.contains(productidColumn[2]) |
+               df.Product_ID.contains(productidColumn[3]) |
+               df.Product_ID.contains(productidColumn[4]) |
+               df.Product_ID.contains(productidColumn[5]) |
+               df.Product_ID.contains(productidColumn[6]))
+# 表列要統計的欄位名稱
+statColumn = ['Deptno', 'Tran_Time', 'Amt']
+# 取出特定欄位
+pDf = fDf.select(statColumn)
+# 轉換日期欄位成為年、月及日等三個欄位
+tDf = (pDf
+       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
+       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
+       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop(tDf.Tran_Time)
+#
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+deptnoYMDcAmt = (tDf
+                 .groupBy(groupColumn)
+                 .agg(count(when((col("Amt").cast('float') < 250), True)).alias('cBike'),
+                      count(when((col("Amt").cast('float') >= 250), True)).alias('cCar'))
+                 .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoYMDcAmt"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDcAmt.write.format('json').save(outputFull)
+
+# 3.3 加油站的發油量：加油站-年-月-日-發油量
+# 產品
+productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
+                   '113F 5100100',
+                   '113F 5100700', '113F 5100800']
+# 取出符合產品項目的資料記錄
+fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
+               df.Product_ID.contains(productidColumn[1]) |
+               df.Product_ID.contains(productidColumn[2]) |
+               df.Product_ID.contains(productidColumn[3]) |
+               df.Product_ID.contains(productidColumn[4]) |
+               df.Product_ID.contains(productidColumn[5]) |
+               df.Product_ID.contains(productidColumn[6]))
+# 表列要統計的欄位名稱
+statColumn = ['Deptno', 'Tran_Time', 'Qty']
+# 取出特定欄位
+pDf = fDf.select(statColumn)
+# 轉換日期欄位成為年、月及日等三個欄位
+tDf = (pDf
+       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
+       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
+       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop(tDf.Tran_Time)
+#
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+deptnoYMDsQty = (tDf
+                 .groupBy(groupColumn)
+                 .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
+                 .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoYMDsQty"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDsQty.write.format('json').save(outputFull)
