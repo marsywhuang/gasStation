@@ -46,10 +46,41 @@ productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
 # MDATE, SID, YYMM, BPRICE, SPRICE, MK1, MK2, MK3, S3_SEQNO, ISLAND_NO,
 # GUN_NO, EDC_VERSION
 
-statColumn = ['PNO', 'TDATE', 'QTY']
 
+#
+statColumn = ['CARNO', 'TDATE', 'QTY']
 # 取出特定欄位
 pDf = df.select(statColumn)
 # 分離日期欄位的年及月至新欄位
-tDf = (pDf.withColumn('TDATEYEAR', pDf215Card['TDATE'].substr(1, 4))
-.withColumn('TDATEMONTH', pDf215Card['TDATE'].substr(5, 2)))
+tDf = (pDf.withColumn('TDATEYEAR', pDf['TDATE'].substr(1, 4))
+       .withColumn('TDATEMONTH', pDf['TDATE'].substr(5, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop('TDATE')
+
+# 群組欄位
+groupColumn = ['CARNO', 'TDATEYEAR', 'TDATEMONTH']
+#
+carnoYM = (tDf
+           .groupBy(groupColumn)
+           .agg(sum(tDf.QTY.cast('float')).alias('aQty'))
+           .orderBy(groupColumn))
+
+# 群組欄位
+groupColumn = ['TDATEYEAR', 'TDATEMONTH']
+#
+carnoYM = (tDf
+           .groupBy(groupColumn)
+           .agg(count(tDf.CARNO.alias('aCarno')))
+           .orderBy(groupColumn))
+
+#
+for idxRow in carnoYM.collect():
+  idxRow
+
+#
+# 未使用區域
+#
+
+#
+tmpMonthQty = {'01': 0.0, '02': 0.0, '03': 0.0, '04': 0.0, '05': 0.0, '06': 0.0,
+               '07': 0.0, '08': 0.0, '09': 0.0, '10': 0.0, '11': 0.0, '12': 0.0}
