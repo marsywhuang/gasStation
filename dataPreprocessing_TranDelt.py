@@ -379,7 +379,7 @@ deptnoYcAmt = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoYMcAmt"
+outputFile = "deptnoYcAmt"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
