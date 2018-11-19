@@ -411,7 +411,7 @@ tDf = (pDf
        .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
-#
+
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
 # 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
@@ -428,3 +428,40 @@ outputFile = "deptnoYMDsQty"
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
 deptnoYMDsQty.write.format('json').save(outputFull)
+
+######
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+deptnoYMDsQty = (tDf
+                 .groupBy(groupColumn)
+                 .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
+                 .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoItemGasDieselYMsQty"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDsQty.write.format('json').save(outputFull)
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear']
+# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+deptnoYMDsQty = (tDf
+                 .groupBy(groupColumn)
+                 .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
+                 .orderBy(groupColumn))
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoItemGasDieselYsQty"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDsQty.write.format('json').save(outputFull)
+######
