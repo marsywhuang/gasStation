@@ -236,7 +236,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
-# 加油站－年－月》計算各類產品筆數
+# 加油站－年－月－日》計算汽油及柴油產品筆數
 deptnoYMDcProductid = (tDf
                        .groupBy(groupColumn)
                        .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
@@ -250,11 +250,59 @@ deptnoYMDcProductid = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoYMDcProductid"
+outputFile = "deptnoItemGasDieselYMDcProductid"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
 deptnoYMDcProductid.write.format('json').save(outputFull)
+
+######
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth']
+# 加油站－年－月》計算汽油及柴油產品筆數
+deptnoYMcProductid = (tDf
+                       .groupBy(groupColumn)
+                       .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
+                            count(when((col("Product_ID").contains(productidColumn[1])), True)).alias('c'+productidColumn[1]),
+                            count(when((col("Product_ID").contains(productidColumn[2])), True)).alias('c'+productidColumn[2]),
+                            count(when((col("Product_ID").contains(productidColumn[3])), True)).alias('c'+productidColumn[3]),
+                            count(when((col("Product_ID").contains(productidColumn[4])), True)).alias('c'+productidColumn[4]),
+                            count(when((col("Product_ID").contains(productidColumn[5])), True)).alias('c'+productidColumn[5]),
+                            count(when((col("Product_ID").contains(productidColumn[6])), True)).alias('c'+productidColumn[6]))
+                       .orderBy(groupColumn))
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoItemGasDieselYMcProductid"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMcProductid.write.format('json').save(outputFull)
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear']
+# 加油站－年－月》計算汽油及柴油產品筆數
+deptnoYcProductid = (tDf
+                       .groupBy(groupColumn)
+                       .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
+                            count(when((col("Product_ID").contains(productidColumn[1])), True)).alias('c'+productidColumn[1]),
+                            count(when((col("Product_ID").contains(productidColumn[2])), True)).alias('c'+productidColumn[2]),
+                            count(when((col("Product_ID").contains(productidColumn[3])), True)).alias('c'+productidColumn[3]),
+                            count(when((col("Product_ID").contains(productidColumn[4])), True)).alias('c'+productidColumn[4]),
+                            count(when((col("Product_ID").contains(productidColumn[5])), True)).alias('c'+productidColumn[5]),
+                            count(when((col("Product_ID").contains(productidColumn[6])), True)).alias('c'+productidColumn[6]))
+                       .orderBy(groupColumn))
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoItemGasDieselYcProductid"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYcProductid.write.format('json').save(outputFull)
+
+######
 
 # 3.2 汽、機車加油筆數：加油站-年-月-日-車種（Amt > 249 | Amt < 250）-筆數
 # 產品
