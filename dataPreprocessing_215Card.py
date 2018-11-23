@@ -48,17 +48,16 @@ for idxCol in range(len(df.columns)):
 #
 
 # 來源路徑
-inputPath = "/home/mywh/data/rawData"
-inputPath = "/home/mywh/data/resultData/215Card/215Card_*/215Card_*/215Card_*.csv"
-
+inputPathL1 = "/home/cpc/data/resultData"
+inputPathL2 = "215Card/215Card_*/215Card_*/215Card_*.csv"
+inputPath = inputPathL1 + "/" + inputPathL2
 # 來源資料
-inputFile = "215Card.csv"
 inputFile = "p*"
 # 完整路徑和資料
 inputFull = inputPath + "/" + inputFile
 
 # 讀入來源資料
-df215Card = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
+df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 
 # 油品項目
 # 113F 1209800	98無鉛汽油	
@@ -73,17 +72,45 @@ productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
                  '113F 5100100',
                  '113F 5100700' , '113F 5100800']
 
+
+#
+# 車隊-車號-年-月-日》加總（里程數）、加總（加油量）、計次（加油量）
+#
+
+# 取出特定欄位
+statColumn = ['CUSAUNT', 'CARNO',  'STDNO', 'TDATE', 'QTY', 'MILE']
+pDf = df.select(statColumn)
+# 分離日期欄位的年及月至新欄位
+tDf = (pDf
+       .withColumn('TDATEYEAR', pDf['TDATE'].substr(1, 4))
+       .withColumn('TDATEMONTH', pDf['TDATE'].substr(5, 2))
+       .withColumn('TDATEDAY', pDf['TDATE'].substr(7, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop('TDATE')
+#
+groupColumn = ['CUSAUNT', 'CARNO', 'STDNO', 'TDATEYEAR', 'TDATEMONTH', 'TDATEDAY']
+sDf = (tDf
+       .groupBy(groupColumn)
+       .agg(
+         sum(tDf.QTY.cast('float')).alias('sQty'),
+         sum(tDf.MILE.cast('float')).alias('sMile'),
+         count(tDf.QTY.cast('float')).alias('cTimes'))
+       .orderBy(groupColumn))
+#
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的資料
+outputFile = "cusauntCarnoYMDsQtysMilecTimes"
+# 完整路徑和資料
+outputFull = outputPath + "/" + outputFile
+#
+sDf.toJSON().coalesce(1).saveAsTextFile(outputFull)
+
 #
 # 年度月油品（汽油/柴油）銷售總量
 #
 
 # 表列要統計的欄位名稱
-# RID, CTYPE, STDNO, PNO, UNT, LDATE, TDATE, QTY, STRNO, TNO,
-# MRK3, MRK4, MRK5, TICKETNO, SHIP, CARNO, PNAME, TICKETTYPE, CUSAUNT, CUSMUNT,
-# TTIME, CARDMNO, CTYPEMK, MILE, PRICE, CNO, BILLNO, ATYPE, ADATE, RDATE,
-# MDATE, SID, YYMM, BPRICE, SPRICE, MK1, MK2, MK3, S3_SEQNO, ISLAND_NO,
-# GUN_NO, EDC_VERSION
-
 statColumn = ['PNO', 'TDATE', 'QTY']
 
 # 取出特定欄位
