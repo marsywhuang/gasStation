@@ -520,3 +520,61 @@ outputFull = outputPath + "/" + outputFile
 # 匯出資料
 deptnoYMDsQty.write.format('json').save(outputFull)
 ######
+
+
+# 3.4 加油站的發油量：加油站－年-月-日-各項油品發油量總數
+
+# 產品
+productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
+                   '113F 5100100',
+                   '113F 5100700', '113F 5100800']
+# 取出符合產品項目的資料記錄
+fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
+               df.Product_ID.contains(productidColumn[1]) |
+               df.Product_ID.contains(productidColumn[2]) |
+               df.Product_ID.contains(productidColumn[3]) |
+               df.Product_ID.contains(productidColumn[4]) |
+               df.Product_ID.contains(productidColumn[5]) |
+               df.Product_ID.contains(productidColumn[6]))
+# 表列要統計的欄位名稱
+statColumn = ['Deptno', 'Tran_Time', 'Qty', 'Product_ID']
+# 取出特定欄位
+pDf = fDf.select(statColumn)
+# 轉換日期欄位成為年、月及日等三個欄位
+tDf = (pDf
+       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
+       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
+       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+# 刪除不必要欄位
+tDf = tDf.drop(tDf.Tran_Time)
+
+# 群組欄位
+groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+# 加油站－年－月－日》各項油品發油量總數
+deptnoYMDsQty = (tDf
+                 .groupBy(groupColumn)
+                 .agg(sum(when((col("Product_ID").contains(productidColumn[0])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[0]),
+                      sum(when((col("Product_ID").contains(productidColumn[1])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[1]),
+                      sum(when((col("Product_ID").contains(productidColumn[2])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[2]),
+                      sum(when((col("Product_ID").contains(productidColumn[3])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[3]),
+                      sum(when((col("Product_ID").contains(productidColumn[4])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[4]),
+                      sum(when((col("Product_ID").contains(productidColumn[5])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[5]),
+                      sum(when((col("Product_ID").contains(productidColumn[6])),
+                               tDf.Qty.cast('float'))).alias('s'+productidColumn[6]))
+                 .orderBy(groupColumn))                 
+
+# 目的路徑
+outputPath = "/home/cpc/data/resultData"
+# 目的檔案名稱
+outputFile = "deptnoItemGasDieseYMDsQty"
+# 完整路徑和名稱
+outputFull = outputPath + "/" + outputFile
+# 匯出資料
+deptnoYMDsQty.write.format('json').save(outputFull)
+
