@@ -15,7 +15,7 @@ from pyspark.sql.functions import when
 #
 
 # 來源路徑
-inputPath = "/home/cpc/data/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*.csv"
+inputPath = "/home/cpc/data/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*"
 # 來源資料
 inputFile = "p*"
 # 完整路徑和資料
