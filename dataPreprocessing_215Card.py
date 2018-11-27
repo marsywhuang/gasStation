@@ -44,12 +44,12 @@ for idxCol in range(len(df.columns)):
       idxRow
 
 #
-# 車隊卡
+# 車隊卡－坤神
 #
 
 # 來源路徑
 inputPathL1 = "/home/cpc/data/resultData"
-inputPathL2 = "215Card/215Card_*/215Card_*/215Card_*.csv"
+inputPathL2 = "215Card/215Card_*/215Card_*/215Card_*"
 inputPath = inputPathL1 + "/" + inputPathL2
 # 來源資料
 inputFile = "p*"
