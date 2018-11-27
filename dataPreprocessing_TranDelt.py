@@ -396,7 +396,7 @@ deptnoYMDcAmt = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoItemGasDieseYMDcAmt"
+outputFile = "deptnoItemGasDieselYMDcAmt"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -434,7 +434,7 @@ deptnoYcAmt = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoItemGasDieseYcAmt"
+outputFile = "deptnoItemGasDieselYcAmt"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -478,7 +478,7 @@ deptnoYMDsQty = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoItemGasDieseYMDsQty"
+outputFile = "deptnoItemGasDieselYMDsQty"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -572,7 +572,7 @@ deptnoYMDsQty = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoItemGasDieseYMDsQty"
+outputFile = "deptnoItemGasDieselYMDsQty"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
