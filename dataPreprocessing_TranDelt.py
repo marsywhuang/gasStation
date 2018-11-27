@@ -469,7 +469,7 @@ tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
-# 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
+#
 deptnoYMDsQty = (tDf
                  .groupBy(groupColumn)
                  .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
@@ -478,7 +478,7 @@ deptnoYMDsQty = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoItemGasDieselYMDsQty"
+outputFile = "deptnoTotalGasDieselYMDsQty"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
@@ -572,7 +572,7 @@ deptnoYMDsQty = (tDf
 # 目的路徑
 outputPath = "/home/cpc/data/resultData"
 # 目的檔案名稱
-outputFile = "deptnoItemGasDieselYMDsQty"
+outputFile = "deptnoEachGasDieselYMDsQty"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
