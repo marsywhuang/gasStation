@@ -24,7 +24,7 @@ inputFile = "p*"
 inputFull = inputPath + "/" + inputFile
 
 # 讀入來源資料
-df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
+df = sqlContext.read.csv(inputFull, encoding = "utf-8", header = "true")
 
 #
 # 坤神要的
@@ -35,11 +35,13 @@ df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 #
 
 # 產品
-productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
-                   '113F 5100100',
-                   '113F 5100700', '113F 5100800']
+productidColumn = [
+  "113F 1209800", "113F 1209500", "113F 1209200", "113F 1229500",
+  "113F 5100100",
+  "113F 5100700", "113F 5100800"]
+
 # 表列要統計的欄位名稱
-statColumn = ['Deptno', 'Tran_Time', 'Product_ID']
+statColumn = ["Deptno", "Tran_Time", "Product_ID"]
 
 # 日期欄位
 dtColumn = ["dateYear", "dateMonth", "dateDay"]
@@ -57,7 +59,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
-groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ["Deptno", "dateYear", "dateMonth", "dateDay"]
 
 # 加油站－年－月－日》計算汽油及柴油產品筆數
 deptnoYMDcProductid = (
@@ -86,9 +88,10 @@ deptnoYMDcProductid.write.format('json').save(outputFull)
 #
 
 # 產品
-productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
-                   '113F 5100100',
-                   '113F 5100700', '113F 5100800']
+productidColumn = [
+  "113F 1209800", "113F 1209500", "113F 1209200", "113F 1229500",
+  "113F 5100100",
+  "113F 5100700", "113F 5100800"]
 
 # 取出符合產品項目的資料記錄
 fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
@@ -100,7 +103,7 @@ fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
                df.Product_ID.contains(productidColumn[6]))
 
 # 表列要統計的欄位名稱
-statColumn = ['Deptno', 'Tran_Time', 'Amt']
+statColumn = ["Deptno", "Tran_Time", "Amt"]
 
 # 取出特定欄位
 pDf = fDf.select(statColumn)
@@ -115,7 +118,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
-groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ["Deptno", "dateYear", "dateMonth", "dateDay"]
 
 # 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYMDcAmt = (tDf
@@ -138,9 +141,10 @@ deptnoYMDcAmt.write.format('json').save(outputFull)
 #
 
 # 產品
-productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
-                   '113F 5100100',
-                   '113F 5100700', '113F 5100800']
+productidColumn = [
+  "113F 1209800", "113F 1209500", "113F 1209200", "113F 1229500",
+  "113F 5100100",
+  "113F 5100700", "113F 5100800"]
 
 # 取出符合產品項目的資料記錄
 fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
@@ -152,7 +156,7 @@ fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
                df.Product_ID.contains(productidColumn[6]))
 
 # 表列要統計的欄位名稱
-statColumn = ['Deptno', 'Tran_Time', 'Qty']
+statColumn = ["Deptno", "Tran_Time", "Qty"]
 
 # 取出特定欄位
 pDf = fDf.select(statColumn)
@@ -167,7 +171,7 @@ tDf = (pDf
 tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
-groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+groupColumn = ["Deptno", "dateYear", "dateMonth", "dateDay"]
 
 #
 deptnoYMDsQty = (tDf
@@ -190,9 +194,11 @@ deptnoYMDsQty.write.format('json').save(outputFull)
 #
 
 # 產品
-productidColumn = ['113F 1209800', '113F 1209500', '113F 1209200', '113F 1229500',
-                   '113F 5100100',
-                   '113F 5100700', '113F 5100800']
+productidColumn = [
+  "113F 1209800", "113F 1209500", "113F 1209200", "113F 1229500",
+  "113F 5100100",
+  "113F 5100700", "113F 5100800"]
+
 # 取出符合產品項目的資料記錄
 fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
                df.Product_ID.contains(productidColumn[1]) |
@@ -201,20 +207,25 @@ fDf = df.where(df.Product_ID.contains(productidColumn[0]) |
                df.Product_ID.contains(productidColumn[4]) |
                df.Product_ID.contains(productidColumn[5]) |
                df.Product_ID.contains(productidColumn[6]))
+
 # 表列要統計的欄位名稱
-statColumn = ['Deptno', 'Tran_Time', 'Qty', 'Product_ID']
+statColumn = ["Deptno", "Tran_Time", "Qty", "Product_ID"]
+
 # 取出特定欄位
 pDf = fDf.select(statColumn)
+
 # 轉換日期欄位成為年、月及日等三個欄位
 tDf = (pDf
        .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
        .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
        .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
 
 # 群組欄位
 groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
+
 # 加油站－年－月－日》各項油品發油量總數
 deptnoYMDsQty = (tDf
                  .groupBy(groupColumn)
