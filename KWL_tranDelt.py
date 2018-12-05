@@ -15,7 +15,9 @@ from pyspark.sql.functions import when
 #
 
 # 來源路徑
-inputPath = "/home/cpc/data/tranDelt/tranDelt_*/tranDelt_*/tranDelt_*"
+inputPathL1 = "/home/cpc/data/rawData"
+inputPathL2 = "tranDelt/tranDelt_*/tranDelt_*/tranDelt_*"
+inputPath = inputPathL1 + "/" + inputPathL2
 
 # 來源資料
 inputFile = "p*"
@@ -65,13 +67,13 @@ groupColumn = ["Deptno", "dateYear", "dateMonth", "dateDay"]
 deptnoYMDcProductid = (
        tDf
        .groupBy(groupColumn)
-       .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias('c'+productidColumn[0]),
-            count(when((col("Product_ID").contains(productidColumn[1])), True)).alias('c'+productidColumn[1]),
-            count(when((col("Product_ID").contains(productidColumn[2])), True)).alias('c'+productidColumn[2]),
-            count(when((col("Product_ID").contains(productidColumn[3])), True)).alias('c'+productidColumn[3]),
-            count(when((col("Product_ID").contains(productidColumn[4])), True)).alias('c'+productidColumn[4]),
-            count(when((col("Product_ID").contains(productidColumn[5])), True)).alias('c'+productidColumn[5]),
-            count(when((col("Product_ID").contains(productidColumn[6])), True)).alias('c'+productidColumn[6]))
+       .agg(count(when((col("Product_ID").contains(productidColumn[0])), True)).alias("cnt" + productidColumn[0]),
+            count(when((col("Product_ID").contains(productidColumn[1])), True)).alias("cnt" + productidColumn[1]),
+            count(when((col("Product_ID").contains(productidColumn[2])), True)).alias("cnt" + productidColumn[2]),
+            count(when((col("Product_ID").contains(productidColumn[3])), True)).alias("cnt" + productidColumn[3]),
+            count(when((col("Product_ID").contains(productidColumn[4])), True)).alias("cnt" + productidColumn[4]),
+            count(when((col("Product_ID").contains(productidColumn[5])), True)).alias("cnt" + productidColumn[5]),
+            count(when((col("Product_ID").contains(productidColumn[6])), True)).alias("cnt" + productidColumn[6]))
        .orderBy(groupColumn))
 
 # 目的路徑
@@ -81,7 +83,7 @@ outputFile = "deptnoItemGasDieselYMDcProductid"
 # 完整路徑和名稱
 outputFull = outputPath + "/" + outputFile
 # 匯出資料
-deptnoYMDcProductid.write.format('json').save(outputFull)
+deptnoYMDcProductid.write.format("json").save(outputFull)
 
 #
 # 3.2 汽、機車加油筆數：加油站-年-月-日-車種（Amt > 249 | Amt < 250）-筆數
@@ -110,9 +112,9 @@ pDf = fDf.select(statColumn)
 
 # 轉換日期欄位成為年、月及日等三個欄位
 tDf = (pDf
-       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
-       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
-       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+       .withColumn("dateYear", pDf["Tran_Time"].substr(1, 4))
+       .withColumn("dateMonth", pDf["Tran_Time"].substr(6, 2))
+       .withColumn("dateDay", pDf["Tran_Time"].substr(9, 2)))
 
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
@@ -123,8 +125,8 @@ groupColumn = ["Deptno", "dateYear", "dateMonth", "dateDay"]
 # 加油站－年－月－日》計算交易金額在（1）小於等於249及（2）大於等於250的筆數
 deptnoYMDcAmt = (tDf
                  .groupBy(groupColumn)
-                 .agg(count(when((col("Amt").cast('float') < 250), True)).alias('cBike'),
-                      count(when((col("Amt").cast('float') >= 250), True)).alias('cCar'))
+                 .agg(count(when((col("Amt").cast("float") < 250), True)).alias("cntBike"),
+                      count(when((col("Amt").cast("float") >= 250), True)).alias("cntCar"))
                  .orderBy(groupColumn))
 
 # 目的路徑
@@ -163,9 +165,9 @@ pDf = fDf.select(statColumn)
 
 # 轉換日期欄位成為年、月及日等三個欄位
 tDf = (pDf
-       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
-       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
-       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+       .withColumn("dateYear", pDf["Tran_Time"].substr(1, 4))
+       .withColumn("dateMonth", pDf["Tran_Time"].substr(6, 2))
+       .withColumn("dateDay", pDf["Tran_Time"].substr(9, 2)))
 
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
@@ -176,7 +178,7 @@ groupColumn = ["Deptno", "dateYear", "dateMonth", "dateDay"]
 #
 deptnoYMDsQty = (tDf
                  .groupBy(groupColumn)
-                 .agg(sum(tDf.Qty.cast('float')).alias('sQty'))
+                 .agg(sum(tDf.Qty.cast("float")).alias("sumQty"))
                  .orderBy(groupColumn))
 
 
@@ -216,9 +218,9 @@ pDf = fDf.select(statColumn)
 
 # 轉換日期欄位成為年、月及日等三個欄位
 tDf = (pDf
-       .withColumn('dateYear', pDf['Tran_Time'].substr(1, 4))
-       .withColumn('dateMonth', pDf['Tran_Time'].substr(6, 2))
-       .withColumn('dateDay', pDf['Tran_Time'].substr(9, 2)))
+       .withColumn("dateYear", pDf["Tran_Time"].substr(1, 4))
+       .withColumn("dateMonth", pDf["Tran_Time"].substr(6, 2))
+       .withColumn("dateDay", pDf["Tran_Time"].substr(9, 2)))
 
 # 刪除不必要欄位
 tDf = tDf.drop(tDf.Tran_Time)
@@ -230,19 +232,19 @@ groupColumn = ['Deptno', 'dateYear', 'dateMonth', 'dateDay']
 deptnoYMDsQty = (tDf
                  .groupBy(groupColumn)
                  .agg(sum(when((col("Product_ID").contains(productidColumn[0])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[0]),
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[0]),
                       sum(when((col("Product_ID").contains(productidColumn[1])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[1]),
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[1]),
                       sum(when((col("Product_ID").contains(productidColumn[2])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[2]),
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[2]),
                       sum(when((col("Product_ID").contains(productidColumn[3])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[3]),
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[3]),
                       sum(when((col("Product_ID").contains(productidColumn[4])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[4]),
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[4]),
                       sum(when((col("Product_ID").contains(productidColumn[5])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[5]),
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[5]),
                       sum(when((col("Product_ID").contains(productidColumn[6])),
-                               tDf.Qty.cast('float'))).alias('s'+productidColumn[6]))
+                               tDf.Qty.cast("float"))).alias("sum" + productidColumn[6]))
                  .orderBy(groupColumn))                 
 
 # 目的路徑
