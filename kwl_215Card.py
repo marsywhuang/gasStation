@@ -24,13 +24,13 @@ inputFile = "infoCpcGasStation.csv"
 inputFull = inputPath + "/" + inputFile
 
 # 讀入來源資料
-df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
+df = sqlContext.read.csv(inputFull, encoding = "utf-8", header = "true")
 
 # 表列要統計的欄位名稱
-statColumn = ['類別', '縣市', '服務中心', '營業中', '國道高速公路',
-              '無鉛92', '無鉛95', '無鉛98', '酒精汽油', '煤油', '超柴',
-              '會員卡', '刷卡自助', '自助柴油站', '電子發票', '悠遊卡', '一卡通', 'HappyCash',
-              '洗車類別']
+statColumn = ["類別", "縣市", "服務中心", "營業中", "國道高速公路",
+              "無鉛92", "無鉛95", "無鉛98", "酒精汽油", "煤油", "超柴",
+              "會員卡", "刷卡自助", "自助柴油站", "電子發票", "悠遊卡", "一卡通", "HappyCash",
+              "洗車類別"]
 
 # 
 for idxCol in range(len(df.columns)):
@@ -57,7 +57,7 @@ inputFile = "p*"
 inputFull = inputPath + "/" + inputFile
 
 # 讀入來源資料
-df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
+df = sqlContext.read.csv(inputFull, encoding = "utf-8", header = "true")
 
 # 油品項目
 # 113F 1209800	98無鉛汽油	
@@ -67,10 +67,10 @@ df = sqlContext.read.csv(inputFull, encoding = 'utf-8', header = "true")
 # 113F 5100100	超級柴油	
 # 113F 5100700	海運輕柴油	
 # 113F 5100800  海運重柴油
-productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
-                 '113F 1229500',
-                 '113F 5100100',
-                 '113F 5100700' , '113F 5100800']
+productColumn = ["113F 1209800", "113F 1209500", "113F 1209200",
+                 "113F 1229500",
+                 "113F 5100100",
+                 "113F 5100700" , "113F 5100800"]
 
 
 #
@@ -78,13 +78,13 @@ productColumn = ['113F 1209800', '113F 1209500', '113F 1209200',
 #
 
 # 取出特定欄位
-statColumn = ['CUSAUNT', 'CARNO',  'STDNO', 'TDATE', 'QTY', 'MILE']
+statColumn = ["CUSAUNT", "CARNO", "STDNO", "TDATE", "QTY", "MILE"]
 pDf = df.select(statColumn)
 # 分離日期欄位的年及月至新欄位
 tDf = (pDf
-       .withColumn('TDATEYEAR', pDf['TDATE'].substr(1, 4))
-       .withColumn('TDATEMONTH', pDf['TDATE'].substr(5, 2))
-       .withColumn('TDATEDAY', pDf['TDATE'].substr(7, 2)))
+       .withColumn("TDATEYEAR", pDf["TDATE"].substr(1, 4))
+       .withColumn("TDATEMONTH", pDf["TDATE"].substr(5, 2))
+       .withColumn("TDATEDAY", pDf["TDATE"].substr(7, 2)))
 # 刪除不必要欄位
 tDf = tDf.drop('TDATE')
 #
